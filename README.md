@@ -42,7 +42,8 @@ gerçek zamanlı motor verilerini okur, çözümler ve hem **480×480 yuvarlak e
 - ✅ **CRC doğrulama, yeniden senkronizasyon ve istatistikler** (ok / timeout / crc / resync sayaçları).
 - 🧮 **VemsTune ini dosyasından birebir ölçekleme** — RPM, MAP, CLT, IAT, TPS, akü, lambda/AFR, avans,
   enjektör süresi, VE, dwell, IAC, boost, durum bayrakları…
-- 🖥️ **LVGL 8.2 gösterge paneli** — RPM halkası, kırmızı bölge, vites uyarısı, eşik renklendirmeli kartlar.
+- 🖥️ **LVGL 8.2 gösterge paneli** — açılış ekranı, RPM halkası, vites uyarısı, eşik renklendirmeli kartlar,
+  AFR standartlarına göre bölgelendirilmiş ayrı AFR sayfası, dokunmatik ile sayfa geçişi.
 - 🧾 **Konsol çıktısı** — okunabilir satır + isteğe bağlı JSON (loglama / PC tarafı entegrasyon için).
 - ⚙️ **Tamamen `menuconfig` ile ayarlanabilir** — baud, protokol, sorgu aralığı, RPM sınırları, parlaklık.
 
@@ -183,12 +184,44 @@ Kart seviyesindeki ayarlar (`sdkconfig.defaults`): 16 MB flash, 8 MB octal PSRAM
 
 ## Ekran / Gösterge paneli
 
-LVGL 8.2 ile 480×480 yuvarlak ekrana çizilir:
+LVGL 8.2 ile 480×480 yuvarlak ekrana çizilir. Sayfalar arasında **sola/sağa kaydırma** ya da
+**dokunma** ile geçilir (CST820 dokunmatik). Alttaki noktalar aktif sayfayı gösterir.
+
+### Açılış ekranı
+
+VEMS logosu, dönen halka ve gerçek açılış adımları ilerleme çubuğuyla gösterilir:
+**EKRAN → USB HOST → VEMS USB (FTDI) → ECU VERISI**. Arka ışık kademeli yanar. ECU verisi
+gelince "Hazir" yazar ve panele kararak geçer. En az `VEMS_UI_SPLASH_MIN_MS` (2.5 s) gösterilir;
+ECU yoksa `VEMS_UI_SPLASH_TIMEOUT_MS` (12 s) sonra panele geçer.
+
+### AFR sayfası
+
+- **Halka:** lambda 0.68–1.36 aralığında AFR bölgelerine göre renkli. Beyaz işaretçi anlık AFR'yi,
+  beyaz tik stokiyometrik değeri gösterir.
+- **Orta:** büyük AFR değeri (bölge renginde) ve bölge adı.
+- **Kartlar:** LAMBDA, HEDEF AFR, EGO KOR %, MIN, FARK (AFR − hedef), MAX. **Uzun basış** MIN/MAX değerlerini sıfırlar.
+- **Alt:** seçili yakıta göre standart AFR aralıkları (rölanti, seyir, tam gaz NA, turbo, soğuk, ekonomi).
+- WBO2 ham değeri ≥ 250 ise ya da lambda 0.60–1.60 aralığı dışındaysa `SENSOR HAZIR DEGIL` yazar.
+
+| Bölge | Lambda | Benzin AFR | Kullanım |
+|---|---|---|---|
+| ÇOK ZENGİN | < 0.75 | < 11.0 | buji kirlenmesi, yakıt israfı |
+| TURBO TAM GAZ | 0.75–0.82 | 11.0–12.0 | aşırı beslemeli tam yük |
+| TAM GAZ / GÜÇ | 0.82–0.90 | 12.0–13.2 | atmosferik tam yük, en iyi güç |
+| HAFİF ZENGİN | 0.90–0.97 | 13.2–14.3 | ivmelenme, ısınma |
+| STOKİYOMETRİK | 0.97–1.03 | 14.3–15.1 | rölanti, kapalı çevrim seyir |
+| EKONOMİ | 1.03–1.10 | 15.1–16.2 | hafif yük, fakir seyir |
+| ÇOK FAKİR | > 1.10 | > 16.2 | tekleme, yüksek EGT, vuruntu riski |
+
+Yakıt tipi (Benzin 14.7 / E85 9.8 / LPG 15.5 / Metanol 6.4) `menuconfig`'den seçilir. Bölgeler
+lambda ile tanımlı olduğu için AFR değerleri yakıta göre otomatik hesaplanır.
+
+### Ana sayfa
 
 - **Dış halka:** 0 – `RPM_MAX` devir. Turkuaz; 5500 üstü turuncu, `RPM_SHIFT` üstü kırmızı. Kırmızı bölge ve tikler sabit.
 - **Orta:** bağlantı durumu (`VEMS A 19200` 🟢 / `VEMS BEKLENIYOR` 🟠 / `VERI YOK` 🔴) ve büyük RPM rakamı.
   Vites uyarı devrinde rakam kırmızı olur.
-- **Kartlar:** MAP, LAMBDA, TPS / CLT, IAT, AKÜ. Eşik aşılınca turuncu / kırmızı
+- **Kartlar:** MAP, AFR (bölge renginde), TPS / CLT, IAT, AKÜ. Eşik aşılınca turuncu / kırmızı
   (ör. CLT ≥ 98 / 105 °C, akü < 12.5 / 11.5 V).
 - **Alt:** ADV / PW / VE, motor durum bayrakları (`RUN`, `CRANK`, `WARM`, `IDLE`, `CL`, `CUT`) ve veri hızı (Hz).
 
@@ -270,8 +303,13 @@ esp32-vems/
 │   ├── ftdi_host.c           # USB host üzerinde minimal FTDI sürücüsü
 │   ├── uart_link.c           # Alternatif düz UART taşıyıcı
 │   ├── vems_proto.c/.h       # TriggerFrame / "A" protokolü, algılama, çözümleme
-│   ├── board_lcd.c/.h        # TCA9554 + ST7701S + RGB panel + arka ışık
-│   └── dash_ui.c/.h          # LVGL gösterge paneli
+│   ├── board_lcd.c/.h        # TCA9554 + ST7701S + RGB panel + arka ışık + CST820 dokunmatik
+│   ├── dash_ui.c/.h          # LVGL portu, sayfa yöneticisi (açılış → ana ↔ AFR)
+│   ├── ui_priv.h             # Renk paleti, ortak yardımcılar, AFR bölgeleri
+│   ├── ui_common.c           # Kart / halka / sayfa noktası bileşenleri, AFR standartları
+│   ├── ui_splash.c           # Açılış ekranı
+│   ├── ui_main.c             # Ana gösterge sayfası
+│   └── ui_afr.c              # AFR sayfası
 └── components/
     └── lvgl/                 # LVGL 8.2 (MIT)
 ```

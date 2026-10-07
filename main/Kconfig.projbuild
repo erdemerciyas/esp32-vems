@@ -96,4 +96,31 @@ menu "VEMS Link"
         range 5 100
         default 80
 
+    choice VEMS_UI_FUEL
+        prompt "Yakit tipi (AFR = lambda x stokiyometrik)"
+        depends on VEMS_UI_ENABLE
+        default VEMS_UI_FUEL_GASOLINE
+
+        config VEMS_UI_FUEL_GASOLINE
+            bool "Benzin (14.7)"
+        config VEMS_UI_FUEL_E85
+            bool "E85 (9.8)"
+        config VEMS_UI_FUEL_LPG
+            bool "LPG (15.5)"
+        config VEMS_UI_FUEL_METHANOL
+            bool "Metanol (6.4)"
+    endchoice
+
+    config VEMS_UI_SPLASH_MIN_MS
+        int "Acilis ekrani minimum suresi (ms)"
+        depends on VEMS_UI_ENABLE
+        range 0 10000
+        default 2500
+
+    config VEMS_UI_SPLASH_TIMEOUT_MS
+        int "ECU bulunamazsa acilis ekranindan cikis (ms)"
+        depends on VEMS_UI_ENABLE
+        range 2000 60000
+        default 12000
+
 endmenu

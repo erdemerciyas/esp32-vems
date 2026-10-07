@@ -38,7 +38,14 @@ static const char *TAG = "lcd";
 #define LCD_GPIO_DE         40
 #define LCD_GPIO_PCLK       41
 
+// CST820 capacitive touch
+#define CST820_ADDR         0x15
+#define CST820_REG_COUNT    0x02
+#define CST820_REG_POINT    0x03
+
+static i2c_master_bus_handle_t s_i2c;
 static i2c_master_dev_handle_t s_tca;
+static i2c_master_dev_handle_t s_touch;
 static uint8_t s_exio = EXIO_LCD_RST | EXIO_TP_RST | EXIO_LCD_CS;
 static spi_device_handle_t s_spi;
 
@@ -67,15 +74,14 @@ static esp_err_t io_expander_init(void)
         .glitch_ignore_cnt = 7,
         .flags.enable_internal_pullup = true,
     };
-    i2c_master_bus_handle_t bus;
-    ESP_RETURN_ON_ERROR(i2c_new_master_bus(&bus_cfg, &bus), TAG, "i2c bus");
+    ESP_RETURN_ON_ERROR(i2c_new_master_bus(&bus_cfg, &s_i2c), TAG, "i2c bus");
 
     i2c_device_config_t dev_cfg = {
         .dev_addr_length = I2C_ADDR_BIT_LEN_7,
         .device_address = TCA9554_ADDR,
         .scl_speed_hz = 400000,
     };
-    ESP_RETURN_ON_ERROR(i2c_master_bus_add_device(bus, &dev_cfg, &s_tca), TAG, "tca9554");
+    ESP_RETURN_ON_ERROR(i2c_master_bus_add_device(s_i2c, &dev_cfg, &s_tca), TAG, "tca9554");
 
     // outputs first (LCD/TP reset released, CS high, buzzer off), then all pins as outputs
     ESP_RETURN_ON_ERROR(tca_write(TCA9554_REG_OUTPUT, s_exio), TAG, "tca output");
@@ -223,6 +229,44 @@ void board_lcd_set_backlight(uint8_t percent)
 }
 
 // ---------------------------------------------------------------------------
+// CST820 touch (polled, no INT pin used)
+// ---------------------------------------------------------------------------
+static esp_err_t touch_init(void)
+{
+    exio_set(EXIO_TP_RST, false);
+    vTaskDelay(pdMS_TO_TICKS(10));
+    exio_set(EXIO_TP_RST, true);
+    vTaskDelay(pdMS_TO_TICKS(50));
+
+    i2c_device_config_t dev_cfg = {
+        .dev_addr_length = I2C_ADDR_BIT_LEN_7,
+        .device_address = CST820_ADDR,
+        .scl_speed_hz = 400000,
+    };
+    return i2c_master_bus_add_device(s_i2c, &dev_cfg, &s_touch);
+}
+
+bool board_touch_read(uint16_t *x, uint16_t *y)
+{
+    if (s_touch == NULL) {
+        return false;
+    }
+    uint8_t reg = CST820_REG_COUNT;
+    uint8_t cnt = 0;
+    if (i2c_master_transmit_receive(s_touch, &reg, 1, &cnt, 1, 20) != ESP_OK || (cnt & 0x0F) == 0) {
+        return false;
+    }
+    uint8_t p[4];
+    reg = CST820_REG_POINT;
+    if (i2c_master_transmit_receive(s_touch, &reg, 1, p, sizeof(p), 20) != ESP_OK) {
+        return false;
+    }
+    *x = ((p[0] & 0x0F) << 8) | p[1];
+    *y = ((p[2] & 0x0F) << 8) | p[3];
+    return *x < BOARD_LCD_H_RES && *y < BOARD_LCD_V_RES;
+}
+
+// ---------------------------------------------------------------------------
 esp_err_t board_lcd_init(esp_lcd_panel_handle_t *out_panel)
 {
     backlight_init();
@@ -261,6 +305,10 @@ esp_err_t board_lcd_init(esp_lcd_panel_handle_t *out_panel)
     ESP_RETURN_ON_ERROR(esp_lcd_new_rgb_panel(&cfg, &panel), TAG, "rgb panel");
     ESP_RETURN_ON_ERROR(esp_lcd_panel_reset(panel), TAG, "panel reset");
     ESP_RETURN_ON_ERROR(esp_lcd_panel_init(panel), TAG, "panel init");
+
+    if (touch_init() != ESP_OK) {
+        ESP_LOGW(TAG, "CST820 touch not available");
+    }
 
     *out_panel = panel;
     ESP_LOGI(TAG, "ST7701S 480x480 RGB panel ready");

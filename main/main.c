@@ -66,7 +66,14 @@ void app_main(void)
     esp_lcd_panel_handle_t panel;
     ESP_ERROR_CHECK(board_lcd_init(&panel));
     ESP_ERROR_CHECK(dash_ui_start(panel));
+    // let the splash render its first frame, then fade the backlight in
+    vTaskDelay(pdMS_TO_TICKS(120));
+    for (int bl = 0; bl <= CONFIG_VEMS_UI_BACKLIGHT; bl += 2) {
+        board_lcd_set_backlight(bl);
+        vTaskDelay(pdMS_TO_TICKS(12));
+    }
     board_lcd_set_backlight(CONFIG_VEMS_UI_BACKLIGHT);
+    vTaskDelay(pdMS_TO_TICKS(400));    // "EKRAN" step visible before USB host starts
 #endif
 
     ESP_ERROR_CHECK(vems_proto_start(&VEMS_LINK));

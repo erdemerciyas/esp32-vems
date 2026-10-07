@@ -45,6 +45,7 @@ static vems_data_t s_data;
 static bool s_have_data;
 static vems_stats_t s_stats;
 static uint32_t s_baud = CONFIG_VEMS_BAUD;
+static volatile vems_mode_t s_mode = VEMS_MODE_NONE;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -323,6 +324,7 @@ static void vems_task(void *arg)
                 waiting_logged = true;
             }
             mode = VEMS_MODE_NONE;
+            s_mode = mode;
             vTaskDelay(pdMS_TO_TICKS(200));
             continue;
         }
@@ -331,6 +333,7 @@ static void vems_task(void *arg)
         if (mode == VEMS_MODE_NONE) {
             ESP_LOGI(TAG, "probing VEMS at %d baud...", CONFIG_VEMS_BAUD);
             mode = detect(payload);
+            s_mode = mode;
             if (mode == VEMS_MODE_NONE) {
                 ESP_LOGW(TAG, "no answer from VEMS (check ECU power / cable / baud); retrying");
                 vTaskDelay(pdMS_TO_TICKS(1000));
@@ -362,6 +365,7 @@ static void vems_task(void *arg)
             ESP_LOGW(TAG, "%d consecutive failures, re-detecting", fails);
             s_stats.resyncs++;
             mode = VEMS_MODE_NONE;
+            s_mode = mode;
         }
 
         vTaskDelay(CONFIG_VEMS_POLL_INTERVAL_MS ? pdMS_TO_TICKS(CONFIG_VEMS_POLL_INTERVAL_MS) : 1);
@@ -370,11 +374,11 @@ static void vems_task(void *arg)
 
 esp_err_t vems_proto_start(const vems_link_t *link)
 {
-    s_link = link;
     s_lock = xSemaphoreCreateMutex();
     if (s_lock == NULL) {
         return ESP_ERR_NO_MEM;
     }
+    s_link = link;
     esp_err_t err = link->start(CONFIG_VEMS_BAUD);
     if (err != ESP_OK) {
         return err;
@@ -382,8 +386,22 @@ esp_err_t vems_proto_start(const vems_link_t *link)
     return xTaskCreatePinnedToCore(vems_task, "vems", 6144, NULL, 5, NULL, 1) == pdPASS ? ESP_OK : ESP_ERR_NO_MEM;
 }
 
+vems_state_t vems_get_state(void)
+{
+    if (s_link == NULL) {
+        return VEMS_STATE_STOPPED;
+    }
+    if (s_mode != VEMS_MODE_NONE) {
+        return VEMS_STATE_ECU_OK;
+    }
+    return s_link->is_ready() ? VEMS_STATE_LINK_UP : VEMS_STATE_WAIT_LINK;
+}
+
 bool vems_get_latest(vems_data_t *out)
 {
+    if (s_lock == NULL) {
+        return false;
+    }
     xSemaphoreTake(s_lock, portMAX_DELAY);
     bool ok = s_have_data;
     if (ok) {
@@ -395,6 +413,10 @@ bool vems_get_latest(vems_data_t *out)
 
 void vems_get_stats(vems_stats_t *out)
 {
+    if (s_lock == NULL) {
+        memset(out, 0, sizeof(*out));
+        return;
+    }
     xSemaphoreTake(s_lock, portMAX_DELAY);
     *out = s_stats;
     xSemaphoreGive(s_lock);

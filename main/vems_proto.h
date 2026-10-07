@@ -72,7 +72,16 @@ typedef struct {
     uint32_t resyncs;
 } vems_stats_t;
 
+typedef enum {
+    VEMS_STATE_STOPPED = 0,     // vems_proto_start() not called yet
+    VEMS_STATE_WAIT_LINK,       // transport started, waiting for FTDI / UART
+    VEMS_STATE_LINK_UP,         // transport ready, probing the ECU
+    VEMS_STATE_ECU_OK,          // ECU answers realtime requests
+} vems_state_t;
+
 esp_err_t vems_proto_start(const vems_link_t *link);
+
+vems_state_t vems_get_state(void);
 
 /** Copies the latest decoded frame. Returns false if no frame was received yet. */
 bool vems_get_latest(vems_data_t *out);
