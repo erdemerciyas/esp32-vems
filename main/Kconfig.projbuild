@@ -1,0 +1,99 @@
+menu "VEMS Link"
+
+    choice VEMS_TRANSPORT
+        prompt "VEMS baglanti tipi"
+        default VEMS_TRANSPORT_USB_FTDI
+        help
+            USB host: VEMS uzerindeki FTDI (micro-USB) dogrudan ESP32-S3 native USB portuna takilir.
+            UART: VEMS TTL/RS232 RX-TX hatlari (seviye donusturucu ile) ESP32 GPIO'larina baglanir.
+
+        config VEMS_TRANSPORT_USB_FTDI
+            bool "USB host - VEMS uzerindeki FTDI (micro-USB)"
+        config VEMS_TRANSPORT_UART
+            bool "TTL UART - dogrudan RX/TX kablolari"
+    endchoice
+
+    config VEMS_UART_PORT
+        int "UART port numarasi"
+        depends on VEMS_TRANSPORT_UART
+        range 1 2
+        default 1
+
+    config VEMS_UART_TX_GPIO
+        int "UART TX GPIO (ESP32 -> VEMS RX)"
+        depends on VEMS_TRANSPORT_UART
+        default 20
+
+    config VEMS_UART_RX_GPIO
+        int "UART RX GPIO (VEMS TX -> ESP32)"
+        depends on VEMS_TRANSPORT_UART
+        default 19
+
+    config VEMS_BAUD
+        int "VEMS baud rate"
+        default 19200
+        help
+            VEMS v3 varsayilan seri hizi 19200 8N1.
+
+    config VEMS_AUTO_BAUD
+        bool "Baud bulunamazsa diger hizlari tara (sadece CRC'li TriggerFrame sorgusu ile)"
+        default n
+
+    choice VEMS_PROTOCOL
+        prompt "Canli veri protokolu"
+        default VEMS_PROTOCOL_AUTO
+        help
+            TF: TriggerFrame (HDLC + Modbus CRC16), VemsTune'un kullandigi yontem (komut 0xA0).
+            A: Eski MegaTune uyumlu "A" komutu (56 bayt, CRC yok).
+            AUTO: once TF, olmazsa A denenir.
+
+        config VEMS_PROTOCOL_AUTO
+            bool "Otomatik (once TriggerFrame, sonra A)"
+        config VEMS_PROTOCOL_TF
+            bool "Sadece TriggerFrame (0xA0)"
+        config VEMS_PROTOCOL_A
+            bool "Sadece MegaTune 'A' komutu"
+    endchoice
+
+    config VEMS_POLL_INTERVAL_MS
+        int "Sorgu araligi (ms)"
+        range 0 2000
+        default 40
+
+    config VEMS_PRINT_INTERVAL_MS
+        int "Konsola yazdirma araligi (ms, 0 = kapali)"
+        range 0 10000
+        default 250
+
+    config VEMS_PRINT_JSON
+        bool "Canli veriyi JSON satiri olarak da yazdir"
+        default n
+
+    config VEMS_DUMP_RAW_FRAMES
+        int "Ilk N ham cevabi HEX olarak yazdir (protokol dogrulama icin)"
+        range 0 100
+        default 3
+
+    config VEMS_UI_ENABLE
+        bool "2.1\" yuvarlak ekranda gosterge paneli"
+        default y
+
+    config VEMS_UI_RPM_MAX
+        int "Devir gostergesi maksimum (RPM)"
+        depends on VEMS_UI_ENABLE
+        range 4000 12000
+        default 8000
+
+    config VEMS_UI_RPM_SHIFT
+        int "Kirmizi bolge / vites uyari devri (RPM)"
+        depends on VEMS_UI_ENABLE
+        range 2000 12000
+        default 6500
+
+    config VEMS_UI_BACKLIGHT
+        int "Ekran parlakligi (%)"
+        depends on VEMS_UI_ENABLE
+        range 5 100
+        default 80
+
+endmenu
