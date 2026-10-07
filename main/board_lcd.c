@@ -36,7 +36,7 @@ static const char *TAG = "lcd";
 // and internal bounce buffers so heavy PSRAM traffic from rendering can't starve the LCD DMA
 #define LCD_PCLK_HZ         (18 * 1000 * 1000)
 #define LCD_NUM_FBS         2
-#define LCD_BOUNCE_LINES    10
+#define LCD_BOUNCE_LINES    20      // more slack for the refill ISR while LVGL hammers PSRAM
 #define LCD_GPIO_BL         6
 #define LCD_GPIO_HSYNC      38
 #define LCD_GPIO_VSYNC      39
@@ -225,6 +225,11 @@ static void backlight_init(void)
         .duty = 0,
     };
     ledc_channel_config(&ch);
+}
+
+void board_buzzer_set(bool on)
+{
+    exio_set(EXIO_BUZZER, on);
 }
 
 void board_lcd_set_backlight(uint8_t percent)

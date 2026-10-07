@@ -58,6 +58,34 @@ static void print_task(void *arg)
     }
 }
 
+#if CONFIG_VEMS_UI_BOOT_BEEP
+// The board has an active (fixed pitch) buzzer, so the "melody" is pure rhythm:
+// three race start-light beeps, a long GO, then a quick blow-off double chirp.
+// ~1.6 s, ends together with the splash logo intro.
+static const struct {
+    uint16_t on_ms;
+    uint16_t off_ms;
+} BOOT_MELODY[] = {
+    {70, 230},      // light 1
+    {70, 230},      // light 2
+    {70, 330},      // light 3
+    {350, 120},     // GO
+    {40, 60},       // pssh-
+    {40, 0},        // -t
+};
+
+static void boot_melody_task(void *arg)
+{
+    for (size_t i = 0; i < sizeof(BOOT_MELODY) / sizeof(BOOT_MELODY[0]); i++) {
+        board_buzzer_set(true);
+        vTaskDelay(pdMS_TO_TICKS(BOOT_MELODY[i].on_ms));
+        board_buzzer_set(false);
+        vTaskDelay(pdMS_TO_TICKS(BOOT_MELODY[i].off_ms));
+    }
+    vTaskDelete(NULL);
+}
+#endif
+
 void app_main(void)
 {
     ESP_LOGI(TAG, "EXTREMEECU dash, link: %s, %d baud", VEMS_LINK.name, CONFIG_VEMS_BAUD);
@@ -68,6 +96,9 @@ void app_main(void)
     ESP_ERROR_CHECK(dash_ui_start(panel));
     // let the splash render its first frame, then fade the backlight in
     vTaskDelay(pdMS_TO_TICKS(120));
+#if CONFIG_VEMS_UI_BOOT_BEEP
+    xTaskCreate(boot_melody_task, "melody", 2048, NULL, 2, NULL);
+#endif
     for (int bl = 0; bl <= CONFIG_VEMS_UI_BACKLIGHT; bl += 2) {
         board_lcd_set_backlight(bl);
         vTaskDelay(pdMS_TO_TICKS(12));

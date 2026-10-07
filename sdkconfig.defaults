@@ -25,7 +25,10 @@ CONFIG_SPIRAM_MODE_OCT=y
 CONFIG_SPIRAM_SPEED_80M=y
 CONFIG_SPIRAM_FETCH_INSTRUCTIONS=y
 CONFIG_SPIRAM_RODATA=y
-CONFIG_LCD_RGB_RESTART_IN_VSYNC=y
+# Bounce buffer modunda her VSYNC'te DMA restart goruntuyu kaydirir; surucu sadece
+# eksik veri tespit edince restart etsin. LCD/GDMA kesmeleri IRAM'de (PSRAM cache gecikmesi yok).
+# CONFIG_LCD_RGB_RESTART_IN_VSYNC is not set
+CONFIG_LCD_RGB_ISR_IRAM_SAFE=y
 
 # LVGL 8.2
 CONFIG_LV_COLOR_DEPTH_16=y

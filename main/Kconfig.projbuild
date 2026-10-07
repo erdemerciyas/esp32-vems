@@ -123,4 +123,9 @@ menu "VEMS Link"
         range 2000 60000
         default 12000
 
+    config VEMS_UI_BOOT_BEEP
+        bool "Acilista buzzer melodisi (yaris baslangic isiklari)"
+        depends on VEMS_UI_ENABLE
+        default y
+
 endmenu

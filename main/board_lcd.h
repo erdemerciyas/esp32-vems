@@ -16,6 +16,9 @@ esp_err_t board_lcd_init(esp_lcd_panel_handle_t *out_panel);
 
 void board_lcd_set_backlight(uint8_t percent);
 
+/** On-board active buzzer (TCA9554 EXIO8): on / off only, the pitch is fixed. */
+void board_buzzer_set(bool on);
+
 /** One of the two full-screen PSRAM frame buffers (RGB565), index 0 is shown after init. */
 void *board_lcd_frame_buffer(int index);
 
