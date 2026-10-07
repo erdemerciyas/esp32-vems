@@ -16,5 +16,14 @@ esp_err_t board_lcd_init(esp_lcd_panel_handle_t *out_panel);
 
 void board_lcd_set_backlight(uint8_t percent);
 
+/** One of the two full-screen PSRAM frame buffers (RGB565), index 0 is shown after init. */
+void *board_lcd_frame_buffer(int index);
+
+/**
+ * Shows the given frame buffer and blocks until the panel has switched to it at the end of the
+ * current frame, so the other buffer can then be redrawn without tearing.
+ */
+void board_lcd_present(const void *fb);
+
 /** Polls the CST820 touch controller. Returns true while a finger is down. */
 bool board_touch_read(uint16_t *x, uint16_t *y);

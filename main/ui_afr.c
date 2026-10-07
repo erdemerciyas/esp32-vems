@@ -73,38 +73,41 @@ lv_obj_t *ui_afr_create(int page, int pages)
 
     // header
     snprintf(buf, sizeof(buf), "AFR  |  %s %.1f", ui_fuel_name(), st);
-    lv_obj_t *hdr = ui_label(scr, &lv_font_montserrat_14, C_MUTED, buf);
-    lv_obj_align(hdr, LV_ALIGN_TOP_MID, 0, 88);
+    lv_obj_t *hdr = ui_label(scr, &ui_font_label, C_MUTED, buf);
+    lv_obj_set_style_text_letter_space(hdr, 2, 0);
+    lv_obj_align(hdr, LV_ALIGN_TOP_MID, 0, 84);
 
-    a.afr = ui_label(scr, &lv_font_montserrat_48, C_MUTED, "--.-");
-    lv_obj_align(a.afr, LV_ALIGN_TOP_MID, 0, 112);
+    a.afr = ui_label(scr, &ui_font_big, C_MUTED, "--.-");
+    lv_obj_align(a.afr, LV_ALIGN_TOP_MID, 0, 104);
 
-    a.zone = ui_label(scr, &lv_font_montserrat_16, C_MUTED, "SENSOR BEKLENIYOR");
-    lv_obj_align(a.zone, LV_ALIGN_TOP_MID, 0, 168);
+    a.zone = ui_label(scr, &ui_font_label_lg, C_MUTED, "SENSOR BEKLENIYOR");
+    lv_obj_set_style_text_letter_space(a.zone, 2, 0);
+    lv_obj_align(a.zone, LV_ALIGN_TOP_MID, 0, 176);
 
-    ui_tile_create(&a.tiles[T_LAMBDA], scr, UI_COL_X0, 200, "LAMBDA");
-    ui_tile_create(&a.tiles[T_TARGET], scr, UI_COL_X1, 200, "HEDEF AFR");
-    ui_tile_create(&a.tiles[T_EGO],    scr, UI_COL_X2, 200, "EGO KOR %");
-    ui_tile_create(&a.tiles[T_MIN],    scr, UI_COL_X0, 266, "MIN AFR");
-    ui_tile_create(&a.tiles[T_DELTA],  scr, UI_COL_X1, 266, "FARK");
-    ui_tile_create(&a.tiles[T_MAX],    scr, UI_COL_X2, 266, "MAX AFR");
+    ui_tile_create(&a.tiles[T_LAMBDA], scr, UI_COL_X0, 206, "LAMBDA");
+    ui_tile_create(&a.tiles[T_TARGET], scr, UI_COL_X1, 206, "HEDEF AFR");
+    ui_tile_create(&a.tiles[T_EGO],    scr, UI_COL_X2, 206, "EGO KOR %");
+    ui_tile_create(&a.tiles[T_MIN],    scr, UI_COL_X0, 272, "MIN AFR");
+    ui_tile_create(&a.tiles[T_DELTA],  scr, UI_COL_X1, 272, "FARK");
+    ui_tile_create(&a.tiles[T_MAX],    scr, UI_COL_X2, 272, "MAX AFR");
 
     // reference standards (lambda windows converted to the selected fuel)
     snprintf(buf, sizeof(buf), "ROLANTI %.1f-%.1f     SEYIR %.1f-%.1f",
              st * 0.97f, st * 1.00f, st * 1.00f, st * 1.05f);
-    lv_obj_t *ref1 = ui_label(scr, &lv_font_montserrat_12, C_MUTED, buf);
+    lv_obj_t *ref1 = ui_label(scr, &ui_font_label, C_MUTED, buf);
     lv_obj_align(ref1, LV_ALIGN_TOP_MID, 0, 382);
     snprintf(buf, sizeof(buf), "TAM GAZ NA %.1f-%.1f     TURBO %.1f-%.1f",
              st * 0.85f, st * 0.90f, st * 0.78f, st * 0.82f);
-    lv_obj_t *ref2 = ui_label(scr, &lv_font_montserrat_12, C_MUTED, buf);
+    lv_obj_t *ref2 = ui_label(scr, &ui_font_label, C_MUTED, buf);
     lv_obj_align(ref2, LV_ALIGN_TOP_MID, 0, 400);
     snprintf(buf, sizeof(buf), "SOGUK %.1f-%.1f     EKONOMI %.1f-%.1f",
              st * 0.82f, st * 0.88f, st * 1.05f, st * 1.10f);
-    lv_obj_t *ref3 = ui_label(scr, &lv_font_montserrat_12, C_MUTED, buf);
+    lv_obj_t *ref3 = ui_label(scr, &ui_font_label, C_MUTED, buf);
     lv_obj_align(ref3, LV_ALIGN_TOP_MID, 0, 418);
 
-    lv_obj_t *ref_title = ui_label(scr, &lv_font_montserrat_12, C_TICK, "STANDART AFR");
-    lv_obj_align(ref_title, LV_ALIGN_TOP_MID, 0, 340);
+    lv_obj_t *ref_title = ui_label(scr, &ui_font_label, C_BRAND, "STANDART AFR");
+    lv_obj_set_style_text_letter_space(ref_title, 3, 0);
+    lv_obj_align(ref_title, LV_ALIGN_TOP_MID, 0, 344);
 
     ui_page_dots(scr, page, pages);
     return scr;

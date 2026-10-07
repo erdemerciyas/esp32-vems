@@ -60,7 +60,7 @@ static void print_task(void *arg)
 
 void app_main(void)
 {
-    ESP_LOGI(TAG, "ESP32-VEMS bridge, link: %s, %d baud", VEMS_LINK.name, CONFIG_VEMS_BAUD);
+    ESP_LOGI(TAG, "EXTREMEECU dash, link: %s, %d baud", VEMS_LINK.name, CONFIG_VEMS_BAUD);
 
 #if CONFIG_VEMS_UI_ENABLE
     esp_lcd_panel_handle_t panel;

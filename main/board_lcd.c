@@ -4,6 +4,8 @@
  */
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/semphr.h"
+#include "esp_attr.h"
 #include "driver/i2c_master.h"
 #include "driver/spi_master.h"
 #include "driver/ledc.h"
@@ -30,8 +32,11 @@ static const char *TAG = "lcd";
 #define LCD_SPI_MOSI        1
 #define LCD_SPI_SCLK        2
 
-// RGB interface
+// RGB interface: two PSRAM frame buffers (LVGL renders into the hidden one, swapped at frame end)
+// and internal bounce buffers so heavy PSRAM traffic from rendering can't starve the LCD DMA
 #define LCD_PCLK_HZ         (18 * 1000 * 1000)
+#define LCD_NUM_FBS         2
+#define LCD_BOUNCE_LINES    10
 #define LCD_GPIO_BL         6
 #define LCD_GPIO_HSYNC      38
 #define LCD_GPIO_VSYNC      39
@@ -48,6 +53,9 @@ static i2c_master_dev_handle_t s_tca;
 static i2c_master_dev_handle_t s_touch;
 static uint8_t s_exio = EXIO_LCD_RST | EXIO_TP_RST | EXIO_LCD_CS;
 static spi_device_handle_t s_spi;
+static esp_lcd_panel_handle_t s_panel;
+static void *s_fbs[LCD_NUM_FBS];
+static SemaphoreHandle_t s_frame_done;
 
 // ---------------------------------------------------------------------------
 // TCA9554 IO expander
@@ -267,16 +275,45 @@ bool board_touch_read(uint16_t *x, uint16_t *y)
 }
 
 // ---------------------------------------------------------------------------
+// Frame buffer swap, synchronised to the end of the scanned-out frame
+// ---------------------------------------------------------------------------
+// The bounce buffer ISR picks up the newly selected frame buffer when it wraps to the next frame
+// and then calls this, so from here on the previous buffer is no longer read and may be redrawn.
+static bool IRAM_ATTR on_frame_done(esp_lcd_panel_handle_t panel, const esp_lcd_rgb_panel_event_data_t *edata,
+                                    void *user_ctx)
+{
+    BaseType_t woken = pdFALSE;
+    xSemaphoreGiveFromISR(s_frame_done, &woken);
+    return woken == pdTRUE;
+}
+
+void *board_lcd_frame_buffer(int index)
+{
+    return (index >= 0 && index < LCD_NUM_FBS) ? s_fbs[index] : NULL;
+}
+
+void board_lcd_present(const void *fb)
+{
+    xSemaphoreTake(s_frame_done, 0);    // drop an event from a frame that ended before this swap
+    esp_lcd_panel_draw_bitmap(s_panel, 0, 0, BOARD_LCD_H_RES, BOARD_LCD_V_RES, fb);
+    xSemaphoreTake(s_frame_done, pdMS_TO_TICKS(50));
+}
+
+// ---------------------------------------------------------------------------
 esp_err_t board_lcd_init(esp_lcd_panel_handle_t *out_panel)
 {
     backlight_init();
     ESP_RETURN_ON_ERROR(io_expander_init(), TAG, "io expander");
     ESP_RETURN_ON_ERROR(st7701_init_registers(), TAG, "st7701");
 
+    s_frame_done = xSemaphoreCreateBinary();
+    ESP_RETURN_ON_FALSE(s_frame_done, ESP_ERR_NO_MEM, TAG, "frame semaphore");
+
     esp_lcd_rgb_panel_config_t cfg = {
         .clk_src = LCD_CLK_SRC_DEFAULT,
         .data_width = 16,
-        .num_fbs = 1,
+        .num_fbs = LCD_NUM_FBS,
+        .bounce_buffer_size_px = BOARD_LCD_H_RES * LCD_BOUNCE_LINES,
         .dma_burst_size = 64,
         .hsync_gpio_num = LCD_GPIO_HSYNC,
         .vsync_gpio_num = LCD_GPIO_VSYNC,
@@ -303,8 +340,12 @@ esp_err_t board_lcd_init(esp_lcd_panel_handle_t *out_panel)
     };
     esp_lcd_panel_handle_t panel;
     ESP_RETURN_ON_ERROR(esp_lcd_new_rgb_panel(&cfg, &panel), TAG, "rgb panel");
+    const esp_lcd_rgb_panel_event_callbacks_t cbs = {.on_bounce_frame_finish = on_frame_done};
+    ESP_RETURN_ON_ERROR(esp_lcd_rgb_panel_register_event_callbacks(panel, &cbs, NULL), TAG, "panel callbacks");
+    ESP_RETURN_ON_ERROR(esp_lcd_rgb_panel_get_frame_buffer(panel, LCD_NUM_FBS, &s_fbs[0], &s_fbs[1]), TAG, "fbs");
     ESP_RETURN_ON_ERROR(esp_lcd_panel_reset(panel), TAG, "panel reset");
     ESP_RETURN_ON_ERROR(esp_lcd_panel_init(panel), TAG, "panel init");
+    s_panel = panel;
 
     if (touch_init() != ESP_OK) {
         ESP_LOGW(TAG, "CST820 touch not available");

@@ -104,15 +104,23 @@ void ui_tile_create(ui_tile_t *t, lv_obj_t *parent, int x, int y, const char *ca
     lv_obj_set_style_bg_opa(t->box, LV_OPA_COVER, 0);
     lv_obj_set_style_border_color(t->box, C_TILE_BRD, 0);
     lv_obj_set_style_border_width(t->box, 1, 0);
-    lv_obj_set_style_radius(t->box, 12, 0);
+    lv_obj_set_style_radius(t->box, 4, 0);
     lv_obj_set_style_pad_all(t->box, 0, 0);
     lv_obj_clear_flag(t->box, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE);
 
-    t->caption = ui_label(t->box, &lv_font_montserrat_12, C_MUTED, caption);
-    lv_obj_align(t->caption, LV_ALIGN_TOP_MID, 0, 6);
+    t->stripe = lv_obj_create(t->box);
+    lv_obj_remove_style_all(t->stripe);
+    lv_obj_set_size(t->stripe, 3, UI_TILE_H - 18);
+    lv_obj_align(t->stripe, LV_ALIGN_LEFT_MID, 0, 0);
+    lv_obj_set_style_bg_color(t->stripe, C_BRAND, 0);
+    lv_obj_set_style_bg_opa(t->stripe, LV_OPA_COVER, 0);
 
-    t->value = ui_label(t->box, &lv_font_montserrat_24, C_MUTED, "--");
-    lv_obj_align(t->value, LV_ALIGN_BOTTOM_MID, 0, -6);
+    t->caption = ui_label(t->box, &ui_font_label, C_MUTED, caption);
+    lv_obj_set_style_text_letter_space(t->caption, 1, 0);
+    lv_obj_align(t->caption, LV_ALIGN_TOP_LEFT, 10, 5);
+
+    t->value = ui_label(t->box, &ui_font_value, C_MUTED, "--");
+    lv_obj_align(t->value, LV_ALIGN_BOTTOM_RIGHT, -9, -3);
     strcpy(t->last, "--");
 }
 
@@ -124,23 +132,36 @@ void ui_tile_set(ui_tile_t *t, const char *txt, lv_color_t color)
     }
     if (lv_obj_get_style_text_color(t->value, 0).full != color.full) {
         lv_obj_set_style_text_color(t->value, color, 0);
+        // plain values keep the brand stripe, warnings / zones light it up
+        bool plain = color.full == C_TEXT.full || color.full == C_MUTED.full;
+        lv_obj_set_style_bg_color(t->stripe, plain ? C_BRAND : color, 0);
+        lv_obj_set_style_border_color(t->box, plain ? C_TILE_BRD : color, 0);
+        lv_obj_set_style_border_opa(t->box, plain ? LV_OPA_COVER : LV_OPA_60, 0);
     }
 }
 
 void ui_page_dots(lv_obj_t *scr, int active, int count)
 {
-    const int size = 8, gap = 10;
-    int total = count * size + (count - 1) * gap;
+    const int w_on = 22, w_off = 10, h = 4, gap = 6;
+    int total = w_on + (count - 1) * w_off + (count - 1) * gap;
+    int x = (BOARD_LCD_H_RES - total) / 2;
     for (int i = 0; i < count; i++) {
         lv_obj_t *d = lv_obj_create(scr);
-        lv_obj_set_size(d, size, size);
-        lv_obj_set_style_radius(d, LV_RADIUS_CIRCLE, 0);
-        lv_obj_set_style_border_width(d, 0, 0);
-        lv_obj_set_style_bg_color(d, i == active ? C_ACCENT : C_TILE_BRD, 0);
+        lv_obj_remove_style_all(d);
+        lv_obj_set_size(d, i == active ? w_on : w_off, h);
+        lv_obj_set_style_radius(d, 2, 0);
+        lv_obj_set_style_bg_color(d, i == active ? C_BRAND : C_TILE_BRD, 0);
         lv_obj_set_style_bg_opa(d, LV_OPA_COVER, 0);
-        lv_obj_clear_flag(d, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE);
-        lv_obj_align(d, LV_ALIGN_TOP_LEFT, (BOARD_LCD_H_RES - total) / 2 + i * (size + gap), 448);
+        lv_obj_align(d, LV_ALIGN_TOP_LEFT, x, 450);
+        x += (i == active ? w_on : w_off) + gap;
     }
+}
+
+void ui_brand_footer(lv_obj_t *scr, int y)
+{
+    lv_obj_t *logo = lv_img_create(scr);
+    lv_img_set_src(logo, &img_extremeecu_logo_small);
+    lv_obj_align(logo, LV_ALIGN_TOP_MID, 0, y);
 }
 
 void ui_meter_label_div10_cb(lv_event_t *e)
@@ -160,7 +181,7 @@ lv_obj_t *ui_ring_meter(lv_obj_t *scr)
     lv_obj_set_style_border_width(m, 0, 0);
     lv_obj_set_style_pad_all(m, 26, 0);                 // ticks start inside the outer ring
     lv_obj_set_style_text_color(m, C_MUTED, 0);
-    lv_obj_set_style_text_font(m, &lv_font_montserrat_16, 0);
+    lv_obj_set_style_text_font(m, &ui_font_label_lg, 0);
     lv_obj_remove_style(m, NULL, LV_PART_INDICATOR);    // no needle hub
     lv_obj_clear_flag(m, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(m, ui_meter_label_div10_cb, LV_EVENT_DRAW_PART_BEGIN, NULL);
