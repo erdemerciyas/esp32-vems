@@ -78,3 +78,7 @@ void ui_main_update(const vems_data_t *d, bool fresh);
 lv_obj_t *ui_afr_create(int page, int pages);
 void ui_afr_update(const vems_data_t *d, bool fresh);
 void ui_afr_reset_minmax(void);
+
+lv_obj_t *ui_can_create(int page, int pages);      // only with CONFIG_VEMS_CAN_ENABLE
+void ui_can_update(void);
+void ui_can_toggle(void);

@@ -9,6 +9,9 @@
 #include "esp_log.h"
 #include "esp_timer.h"
 #include "vems_proto.h"
+#if CONFIG_VEMS_CAN_ENABLE
+#include "can_out.h"
+#endif
 #if CONFIG_VEMS_UI_ENABLE
 #include "board_lcd.h"
 #include "dash_ui.h"
@@ -108,6 +111,12 @@ void app_main(void)
 #endif
 
     ESP_ERROR_CHECK(vems_proto_start(&VEMS_LINK));
+#if CONFIG_VEMS_CAN_ENABLE
+    // after board_lcd_init(): GPIO1/2 are shared with the ST7701 init SPI
+    if (can_out_start() != ESP_OK) {
+        ESP_LOGE(TAG, "CAN output could not be started");
+    }
+#endif
     if (CONFIG_VEMS_PRINT_INTERVAL_MS > 0) {
         xTaskCreatePinnedToCore(print_task, "print", 4096, NULL, 3, NULL, 1);
     }

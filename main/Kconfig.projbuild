@@ -128,4 +128,108 @@ menu "VEMS Link"
         depends on VEMS_UI_ENABLE
         default y
 
+    menu "CAN cikisi (HW-184 / MCP2515)"
+
+        config VEMS_CAN_ENABLE
+            bool "VEMS verisini arac CAN hattina bas (orijinal ECU emulasyonu)"
+            default n
+            help
+                Donanim secimi asagida: HW-184 (MCP2515, SPI) ya da ESP32 dahili TWAI + transceiver.
+
+        choice VEMS_CAN_HW
+            prompt "CAN donanimi"
+            depends on VEMS_CAN_ENABLE
+            default VEMS_CAN_HW_MCP2515
+
+            config VEMS_CAN_HW_MCP2515
+                bool "HW-184 / MCP2515 (SPI, SD kart yuvasi)"
+                help
+                    HW-184 (MCP2515 + TJA1050) SPI ile baglanir. Varsayilan pinler SD kart yuvasindan
+                    (GPIO2/1/42) ve 12 pin konnektorun IO0 ucundan alinir; SD kart kullanilamaz.
+                    MCP2515 3.3V, TJA1050 5V ile beslenmeli (modulde VCC ayrimi gerekir).
+
+            config VEMS_CAN_HW_TWAI
+                bool "ESP32 dahili TWAI + transceiver (12 pin konnektor TXD/RXD)"
+                help
+                    ESP32-S3 icindeki CAN birimi kullanilir, SD kart serbest kalir. Transceiver:
+                    MCP2515'i sokulmus HW-184 (TJA1050, 5V = konnektor pin 2 VBus, RXD hattina
+                    1k/2k bolucu) ya da SN65HVD230 (3.3V). GPIO43/44 seri log hattidir: CAN
+                    acikken loglar kaybolur ve USB TO UART Type-C portu bos olmalidir.
+        endchoice
+
+        config VEMS_CAN_TWAI_TX_GPIO
+            int "TWAI TX GPIO -> transceiver TXD (konnektor pin 10, RXD/GPIO44)"
+            depends on VEMS_CAN_HW_TWAI
+            default 44
+            help
+                GPIO44 acilista giris oldugu icin hat resesif kalir. GPIO43 (TXD) secilirse
+                acilis loglari CAN hattina bit olarak gider ve araca hata cercevesi basar.
+
+        config VEMS_CAN_TWAI_RX_GPIO
+            int "TWAI RX GPIO <- transceiver RXD (konnektor pin 9, TXD/GPIO43)"
+            depends on VEMS_CAN_HW_TWAI
+            default 43
+
+        choice VEMS_CAN_VEHICLE
+            prompt "Arac profili"
+            depends on VEMS_CAN_ENABLE
+            default VEMS_CAN_VEHICLE_RX8
+
+            config VEMS_CAN_VEHICLE_RX8
+                bool "Mazda RX-8 (SE3P, 2003-2012)"
+        endchoice
+
+        config VEMS_CAN_OSC_MHZ
+            int "MCP2515 kristal frekansi (MHz, 8 veya 16)"
+            depends on VEMS_CAN_HW_MCP2515
+            range 8 16
+            default 8
+
+        config VEMS_CAN_SCLK_GPIO
+            int "SPI SCK GPIO (SD yuvasi CLK)"
+            depends on VEMS_CAN_HW_MCP2515
+            default 2
+
+        config VEMS_CAN_MOSI_GPIO
+            int "SPI MOSI GPIO -> MCP2515 SI (SD yuvasi CMD)"
+            depends on VEMS_CAN_HW_MCP2515
+            default 1
+
+        config VEMS_CAN_MISO_GPIO
+            int "SPI MISO GPIO <- MCP2515 SO (SD yuvasi DAT0)"
+            depends on VEMS_CAN_HW_MCP2515
+            default 42
+
+        config VEMS_CAN_CS_GPIO
+            int "SPI CS GPIO (konnektor pin 12, IO0)"
+            depends on VEMS_CAN_HW_MCP2515
+            default 0
+
+        config VEMS_CAN_SPI_KHZ
+            int "SPI saat hizi (kHz)"
+            depends on VEMS_CAN_HW_MCP2515
+            range 500 10000
+            default 4000
+
+        config VEMS_CAN_STALE_MS
+            int "VEMS verisi bu sureden eskiyse devir 0 + motor arizasi lambasi (ms)"
+            depends on VEMS_CAN_ENABLE
+            range 200 5000
+            default 1000
+
+        config VEMS_CAN_RX8_IMMO
+            bool "RX-8: immobilizer el sikismasina cevap ver (anahtar lambasi yanip sonmesin)"
+            depends on VEMS_CAN_VEHICLE_RX8
+            default y
+
+        config VEMS_CAN_RX8_OIL_ASSUME_OK
+            bool "RX-8: motor calisirken yag basincini normal goster (GERCEK SENSOR YOK!)"
+            depends on VEMS_CAN_VEHICLE_RX8
+            default n
+            help
+                VEMS yag basinci olcmuyor. Acik olursa gosterge sadece "motor calisiyor" bilgisine gore
+                normal gorunur, gercek basinc kaybini GOSTERMEZ. Kapaliyken yag lambasi surekli yanar.
+
+    endmenu
+
 endmenu

@@ -1,8 +1,9 @@
 /*
  * LVGL port + screen manager.
  *
- *   boot splash  ->  [ main dashboard | AFR ]   (swipe left/right or tap to switch,
- *                                                long press on AFR resets min/max)
+ *   boot splash  ->  [ main dashboard | AFR | CAN ]   (swipe left/right or tap to switch,
+ *                                                      long press on AFR resets min/max,
+ *                                                      long press on CAN toggles the output)
  *
  * Rendering is tear-free: LVGL draws full frames straight into the hidden one of the two panel
  * frame buffers and flush swaps them at the end of the scanned-out frame.
@@ -32,7 +33,11 @@ static const char *TAG = "ui";
 #define SLIDE_MS            320
 #define FADE_MS             450
 
+#if CONFIG_VEMS_CAN_ENABLE
+enum { PAGE_MAIN, PAGE_AFR, PAGE_CAN, PAGE_COUNT };
+#else
 enum { PAGE_MAIN, PAGE_AFR, PAGE_COUNT };
+#endif
 
 typedef enum { TR_LEFT, TR_RIGHT, TR_FADE } transition_t;
 
@@ -259,6 +264,11 @@ static void page_event_cb(lv_event_t *e)
     } else if (code == LV_EVENT_LONG_PRESSED && ui.page == PAGE_AFR) {
         ui_afr_reset_minmax();
         ui.last_switch = esp_timer_get_time();  // don't treat the release as a tap
+#if CONFIG_VEMS_CAN_ENABLE
+    } else if (code == LV_EVENT_LONG_PRESSED && ui.page == PAGE_CAN) {
+        ui_can_toggle();
+        ui.last_switch = esp_timer_get_time();
+#endif
     }
 }
 
@@ -285,6 +295,9 @@ static void ui_update_cb(lv_timer_t *timer)
 
     ui_main_update(&d, fresh);
     ui_afr_update(&d, fresh);
+#if CONFIG_VEMS_CAN_ENABLE
+    ui_can_update();
+#endif
 }
 
 // ---------------------------------------------------------------------------
@@ -321,6 +334,9 @@ esp_err_t dash_ui_start(esp_lcd_panel_handle_t panel)
     // pages are built up-front so switching is instant
     ui.pages[PAGE_MAIN] = ui_main_create(PAGE_MAIN, PAGE_COUNT);
     ui.pages[PAGE_AFR] = ui_afr_create(PAGE_AFR, PAGE_COUNT);
+#if CONFIG_VEMS_CAN_ENABLE
+    ui.pages[PAGE_CAN] = ui_can_create(PAGE_CAN, PAGE_COUNT);
+#endif
     for (int i = 0; i < PAGE_COUNT; i++) {
         lv_obj_add_event_cb(ui.pages[i], page_event_cb, LV_EVENT_GESTURE, NULL);
         lv_obj_add_event_cb(ui.pages[i], page_event_cb, LV_EVENT_SHORT_CLICKED, NULL);
