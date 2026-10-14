@@ -1,0 +1,920 @@
+<title>EXTREMEECU Swap Platformu</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: live two-gauge hero, then signal map, module status grid, relay-logic lab, swap signal table, hardware and phase roadmap. One dark carbon look, same palette as the EXTREMEECU dash firmware. */
+:root{
+  color-scheme:dark;
+  --bg:#07080a; --panel:#0e1014; --panel2:#14171c; --line:#252a32; --line2:#323843;
+  --fg:#f1f3f6; --muted:#8a909c; --dim:#5b616c;
+  --brand:#ee2323; --cold:#00c8ff; --ok:#2ed47a; --warn:#ffb020; --alert:#ff3b30;
+  --display:"Rajdhani","Arial Narrow",sans-serif;
+  --body:"Barlow",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:400 16px/1.55 var(--body);margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 64px;display:grid;gap:56px}
+section{display:grid;gap:18px;min-width:0}
+.eyebrow{font:600 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--brand)}
+h1{font:700 clamp(40px,6.4vw,72px)/.95 var(--display);margin:0;letter-spacing:.01em;text-transform:uppercase;text-wrap:balance}
+h1 em{font-style:normal;color:var(--brand)}
+h2{font:700 clamp(28px,3.4vw,38px)/1 var(--display);margin:0;text-transform:uppercase;letter-spacing:.02em;text-wrap:balance}
+h3{font:700 21px/1.1 var(--display);margin:0;letter-spacing:.02em;text-transform:uppercase}
+p{margin:0}
+.lede{color:#c9ced6;max-width:62ch;font-size:17px}
+.sub{color:var(--muted);max-width:70ch}
+code{font-family:var(--mono);font-size:.88em;color:#dfe3e8}
+a{color:var(--cold)}
+:focus-visible{outline:2px solid var(--cold);outline-offset:3px;border-radius:4px}
+
+/* ---------- hero ---------- */
+.hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:36px;align-items:center}
+.hero-text{display:grid;gap:18px;align-content:start}
+.verbs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.verbs div{background:var(--panel);padding:12px 14px;display:grid;gap:2px}
+.verbs b{font:700 20px/1 var(--display);text-transform:uppercase;letter-spacing:.04em}
+.verbs span{color:var(--muted);font-size:14px}
+.stage{display:grid;gap:14px}
+.gauges{display:grid;grid-template-columns:1.12fr .88fr;gap:18px;align-items:center}
+.gauges figure{margin:0;display:grid;gap:8px;justify-items:center;min-width:0}
+.gauges svg{width:100%;height:auto;max-width:100%;display:block;filter:drop-shadow(0 18px 40px rgba(0,0,0,.6))}
+.gauges figcaption{font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.simbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;justify-content:space-between;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:600 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--dim);border:1px solid var(--line2);border-radius:99px;padding:3px 9px}
+.chip.on{color:var(--bg);background:var(--fg);border-color:var(--fg)}
+.btn{font:600 13px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--fg);background:var(--panel2);border:1px solid var(--line2);border-radius:6px;padding:7px 12px;cursor:pointer}
+.btn:hover{border-color:var(--muted)}
+.btn.red{background:var(--brand);border-color:var(--brand);color:#fff}
+.simnote{font:500 11px var(--mono);color:var(--dim);letter-spacing:.04em}
+
+/* gauge svg text */
+.g-face{fill:#000;stroke:#1e2229;stroke-width:3}
+.g-track{fill:none;stroke:#16181d;stroke-width:22;stroke-linecap:round}
+.g-red{fill:none;stroke:#4a1010;stroke-width:22}
+.g-val{fill:none;stroke:var(--fg);stroke-width:22;stroke-linecap:round;transition:stroke .15s}
+.g-val.hot{stroke:var(--brand)}
+.tick{font:600 22px var(--display);fill:#59606b;text-anchor:middle}
+.tick.red{fill:var(--brand)}
+.g-status{font:600 13px var(--mono);fill:var(--ok);text-anchor:middle;letter-spacing:.06em}
+.g-big{font:700 86px var(--display);fill:var(--fg);text-anchor:middle;font-variant-numeric:tabular-nums}
+.g-unit{font:600 13px var(--mono);fill:var(--muted);text-anchor:middle;letter-spacing:.12em}
+.g-gear{font:700 34px var(--display);fill:#fff;text-anchor:middle}
+.g-spd{font:700 30px var(--display);fill:var(--fg);text-anchor:start;font-variant-numeric:tabular-nums}
+.g-spdu{font:600 12px var(--mono);fill:var(--muted)}
+.t-box{fill:#0b0d11;stroke:#22262e;stroke-width:1.5}
+.t-cap{font:600 10.5px var(--mono);fill:var(--muted);letter-spacing:.08em}
+.t-v{font:700 25px var(--display);fill:var(--fg);font-variant-numeric:tabular-nums}
+.bezel{fill:none;stroke:var(--brand);stroke-width:9;opacity:0}
+.a-zone{fill:none;stroke-width:22}
+.a-big{font:700 92px var(--display);text-anchor:middle;font-variant-numeric:tabular-nums}
+.a-name{font:700 19px var(--display);text-anchor:middle;letter-spacing:.08em}
+.a-row{font:600 14px var(--mono);fill:var(--muted);text-anchor:middle}
+.a-row tspan.v{fill:var(--fg)}
+
+/* ---------- signal map ---------- */
+.diagram{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.scroll{overflow-x:auto}
+.scroll svg{display:block;min-width:900px;width:100%;height:auto}
+.box{fill:var(--panel2);stroke:var(--line2);stroke-width:1.5}
+.core{fill:#120708;stroke:var(--brand);stroke-width:2}
+.bx-t{font:700 19px var(--display);fill:var(--fg);letter-spacing:.02em}
+.bx-s{font:500 12.5px var(--mono);fill:var(--muted)}
+.core-t{font:700 24px var(--display);fill:#fff;letter-spacing:.04em}
+.core-k{font:700 15px var(--display);fill:var(--brand);letter-spacing:.1em}
+.core-v{font:500 12.5px var(--mono);fill:#c9ced6}
+.ln{fill:none;stroke-width:3}
+.ln.can{stroke:var(--brand)} .ln.ser{stroke:var(--cold)} .ln.ana{stroke:var(--warn)} .ln.dig{stroke:var(--ok)} .ln.int{stroke:#c9ced6} .ln.air{stroke:var(--muted);stroke-dasharray:6 6}
+.col-h{font:600 12px var(--mono);fill:var(--dim);letter-spacing:.14em}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;padding:12px 16px;border-top:1px solid var(--line);font-size:14px;color:#c9ced6}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.legend i{width:24px;height:3px;border-radius:2px;display:inline-block}
+
+/* ---------- modules ---------- */
+.mods{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px}
+.mod{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;display:grid;gap:10px;align-content:start;min-width:0}
+.mod p{color:#c9ced6;font-size:15px}
+.mod dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:13.5px}
+.mod dt{font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dim);padding-top:3px}
+.mod dd{margin:0;color:var(--muted)}
+.st{justify-self:start;font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:99px;border:1px solid currentColor}
+.st.ready{color:var(--ok)} .st.code{color:var(--cold)} .st.next{color:var(--warn)} .st.plan{color:var(--muted)} .st.risk{color:var(--brand)}
+.statkey{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:14px;color:var(--muted)}
+
+/* ---------- relay lab ---------- */
+.lab{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:18px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;display:grid;gap:14px;align-content:start;min-width:0}
+.panel-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.panel-h h3{font-size:18px}
+.sl{display:grid;gap:4px}
+.sl label{display:flex;justify-content:space-between;font:600 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.sl output{color:var(--fg);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--brand);height:22px}
+.outs{display:grid;gap:8px}
+.out{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:10px 12px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;transition:border-color .2s}
+.out .ch{font:600 11px var(--mono);color:var(--dim);letter-spacing:.06em;width:44px}
+.out b{font:700 17px var(--display);letter-spacing:.03em;text-transform:uppercase}
+.out small{grid-column:2/3;color:var(--muted);font-size:13px;line-height:1.35}
+.out .led{grid-row:1/3;grid-column:3;font:700 12px var(--mono);letter-spacing:.08em;padding:5px 10px;border-radius:5px;border:1px solid var(--line2);color:var(--dim);min-width:70px;text-align:center}
+.out.on{border-color:rgba(46,212,122,.5)} .out.on .led{background:var(--ok);border-color:var(--ok);color:#03140a}
+.out.alarm{border-color:var(--brand)} .out.alarm .led{background:var(--brand);border-color:var(--brand);color:#fff}
+.out.blink .led{animation:blink .24s steps(1) infinite}
+@keyframes blink{50%{opacity:.25}}
+.failsafe{font-size:14px;color:var(--muted);border-left:3px solid var(--warn);padding:2px 0 2px 12px}
+
+/* ---------- custom cluster ---------- */
+.screens{display:flex;flex-wrap:wrap;gap:8px}
+.scr{font:600 13px var(--mono);letter-spacing:.03em;color:var(--muted);background:var(--panel);border:1px solid var(--line2);border-radius:6px;padding:8px 12px;cursor:pointer;display:grid;gap:1px;text-align:left}
+.scr small{font:500 11px var(--mono);color:var(--dim)}
+.scr:hover{border-color:var(--muted)}
+.scr[aria-pressed="true"]{color:var(--fg);border-color:var(--brand);background:#1a0a0b}
+.scr[aria-pressed="true"] small{color:#c9ced6}
+.cl-frame{background:#000;border:1px solid var(--line2);border-radius:16px;padding:clamp(6px,1.2vw,14px);box-shadow:0 30px 60px rgba(0,0,0,.55),inset 0 0 0 1px #000;min-width:0}
+.cl-frame svg{display:block;width:100%;height:auto;border-radius:6px}
+.cl-meta{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;font-size:14px;color:var(--muted)}
+.cl-meta b{font:600 13px var(--mono);color:var(--fg);letter-spacing:.03em}
+.cl-meta .cpu{font:600 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:99px;border:1px solid currentColor}
+.cl-feats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:14px}
+.cl-feats div{border-top:2px solid var(--line2);padding-top:10px;display:grid;gap:4px}
+.cl-feats b{font:700 17px var(--display);text-transform:uppercase;letter-spacing:.03em}
+.cl-feats span{color:var(--muted);font-size:14.5px}
+
+/* ---------- tables ---------- */
+.tbl{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:760px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim);background:var(--panel2)}
+td.m{font-family:var(--mono);font-size:13px;color:#c9ced6;white-space:nowrap;font-variant-numeric:tabular-nums}
+td b{font-weight:600}
+.cmp td:first-child{color:var(--muted);font:600 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.cmp td:nth-child(3){color:var(--fg)}
+.cmp td:nth-child(2){color:var(--muted)}
+
+/* ---------- phases ---------- */
+.phases{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.phases li{background:var(--panel);padding:16px;display:grid;gap:6px;align-content:start;min-width:0}
+.phases .n{font:700 34px/1 var(--display);color:var(--dim)}
+.phases li.now .n{color:var(--brand)}
+.phases b{font:700 18px/1.1 var(--display);text-transform:uppercase;letter-spacing:.03em}
+.phases span{color:var(--muted);font-size:14px}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:14px}
+.rule{border-top:2px solid var(--line2);padding-top:12px;display:grid;gap:6px}
+.rule b{font:700 18px var(--display);text-transform:uppercase;letter-spacing:.03em}
+.rule p{color:var(--muted);font-size:15px}
+.rule.hot{border-top-color:var(--brand)}
+footer{color:var(--dim);font:500 12px var(--mono);letter-spacing:.04em;border-top:1px solid var(--line);padding-top:16px}
+
+@media (max-width:900px){
+  .hero{grid-template-columns:1fr}
+  .lab{grid-template-columns:1fr}
+}
+@media (max-width:520px){
+  .gauges{grid-template-columns:1fr}
+  .verbs{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  .out.blink .led{animation:none}
+  .g-val{transition:none}
+}
+</style>
+
+<div class="wrap">
+
+<!-- ================= HERO ================= -->
+<section class="hero" aria-label="Giriş">
+  <div class="hero-text">
+    <div class="eyebrow">EXTREMEECU · ESP32-S3 · swap platformu</div>
+    <h1>Swap'in <em>sinir sistemi</em></h1>
+    <p class="lede">Standalone beyin, BMW otomatik şanzıman, orijinal gösterge paneli, AFR saati ve röleler normalde birbirinden habersizdir. Bu kart hepsini dinler, birinin dilini ötekine çevirir, ekranda gösterir ve kurala göre çıkış sürer. Bugün VEMS köprüsü ve ekran çalışıyor; bu sayfa projenin varacağı yeri anlatıyor.</p>
+    <div class="verbs" role="list">
+      <div role="listitem"><b>Okur</b><span>VEMS seri, CAN stream, şanzıman, OBD, sensörler</span></div>
+      <div role="listitem"><b>Çevirir</b><span>bir hattın mesajını ötekinin formatına</span></div>
+      <div role="listitem"><b>Gösterir</b><span>yuvarlak dash, AFR saati, dijital cluster, orijinal gösterge</span></div>
+      <div role="listitem"><b>Kontrol eder</b><span>fan, pompa, su-metanol, koruma, sinyal üretimi</span></div>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="gauges">
+      <figure>
+        <svg viewBox="0 0 480 480" role="img" aria-label="Yuvarlak dash simülasyonu: devir, vites, hız, AFR, MAP, ATF, hararet, emme havası, yağ basıncı">
+          <circle cx="240" cy="240" r="238" class="g-face"/>
+          <circle cx="240" cy="240" r="232" class="bezel" id="bezel"/>
+          <path class="g-track" d="M92.9 387.1A208 208 0 1 1 387.1 387.1" pathLength="100"/>
+          <path class="g-red" d="M92.9 387.1A208 208 0 1 1 387.1 387.1" pathLength="100" stroke-dasharray="18.75 100" stroke-dashoffset="-81.25"/>
+          <path class="g-val" id="ring" d="M92.9 387.1A208 208 0 1 1 387.1 387.1" pathLength="100" stroke-dasharray="10 100"/>
+          <g id="dashTicks"></g>
+          <text x="240" y="104" class="g-status" id="dStatus">VEMS TF · ZF 6HP · 50 Hz</text>
+          <text x="240" y="196" class="g-big" id="dRpm">850</text>
+          <text x="240" y="218" class="g-unit">RPM</text>
+          <rect x="150" y="232" width="62" height="40" rx="6" fill="#ee2323"/>
+          <text x="181" y="264" class="g-gear" id="dGear">P</text>
+          <text x="226" y="263" class="g-spd" id="dSpd">0</text>
+          <text x="290" y="263" class="g-spdu">KM/H</text>
+          <g id="dTiles"></g>
+        </svg>
+        <figcaption>Yuvarlak dash · VEMS + şanzıman</figcaption>
+      </figure>
+      <figure>
+        <svg viewBox="0 0 480 480" role="img" aria-label="AFR saati simülasyonu">
+          <circle cx="240" cy="240" r="238" class="g-face"/>
+          <path class="g-track" d="M92.9 387.1A208 208 0 1 1 387.1 387.1" pathLength="100"/>
+          <g id="afrZones"></g>
+          <g id="afrTicks"></g>
+          <circle id="afrMark" r="15" cx="240" cy="32" fill="#fff" stroke="#000" stroke-width="4"/>
+          <text x="240" y="132" class="g-unit">AFR · BENZİN</text>
+          <text x="240" y="250" class="a-big" id="aVal" fill="#2ed47a">14.7</text>
+          <text x="240" y="290" class="a-name" id="aZone" fill="#2ed47a">STOKİYOMETRİK</text>
+          <text x="240" y="336" class="a-row">λ <tspan class="v" id="aLam">1.00</tspan>   HEDEF <tspan class="v" id="aTgt">14.7</tspan></text>
+          <text x="240" y="364" class="a-row">MİN <tspan class="v" id="aMin">14.7</tspan>   MAKS <tspan class="v" id="aMax">14.7</tspan></text>
+        </svg>
+        <figcaption>AFR saati · ayrı ekran</figcaption>
+      </figure>
+    </div>
+    <div class="simbar">
+      <div class="chips" id="chips">
+        <span class="chip" data-p="idle">Rölanti</span><span class="chip" data-p="wot">Tam gaz</span><span class="chip" data-p="lift">Gaz kesme</span><span class="chip" data-p="cruise">Seyir</span><span class="chip" data-p="brake">Fren</span>
+      </div>
+      <button class="btn" id="simBtn" type="button">Duraklat</button>
+      <span class="simnote">Simülasyon: VEMS + ZF 6HP oranları, tork konvertörü kayması, yakıt kesme. Gerçek araç verisi değil.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SIGNAL MAP ================= -->
+<section aria-labelledby="h-map">
+  <div class="eyebrow">Sinyal haritası</div>
+  <h2 id="h-map">Her şey tek karttan geçer</h2>
+  <p class="sub">Solda aracın ve swap parçalarının konuştuğu kaynaklar, sağda bu verinin gitmesi gereken yerler. Ortadaki ESP32-S3 her hattın dilini bilir; kural ve profiller sayesinde bir girişi istenen çıkışa bağlar.</p>
+  <div class="diagram">
+    <div class="scroll">
+      <svg viewBox="0 0 1120 600" role="img" aria-label="Girişlerden ESP32 çekirdeğine ve çıkışlara sinyal haritası">
+        <text x="20" y="26" class="col-h">KAYNAKLAR</text>
+        <text x="420" y="26" class="col-h">EXTREMEECU ÇEKİRDEĞİ</text>
+        <text x="810" y="26" class="col-h">HEDEFLER</text>
+        <!-- connectors in -->
+        <path class="ln ser" d="M310 75C365 75 365 190 420 190"/>
+        <path class="ln can" d="M310 163C365 163 365 234 420 234"/>
+        <path class="ln ser" d="M310 251C365 251 365 278 420 278"/>
+        <path class="ln ana" d="M310 339C365 339 365 322 420 322"/>
+        <path class="ln ana" d="M310 427C365 427 365 366 420 366"/>
+        <path class="ln dig" d="M310 515C365 515 365 410 420 410"/>
+        <!-- connectors out -->
+        <path class="ln can" d="M700 190C755 190 755 75 810 75"/>
+        <path class="ln dig" d="M700 234C755 234 755 163 810 163"/>
+        <path class="ln int" d="M700 278C755 278 755 251 810 251"/>
+        <path class="ln dig" d="M700 322C755 322 755 339 810 339"/>
+        <path class="ln can" d="M700 366C755 366 755 427 810 427"/>
+        <path class="ln air" d="M700 410C755 410 755 515 810 515"/>
+        <!-- inputs -->
+        <g>
+          <rect x="20" y="40" width="290" height="70" rx="8" class="box"/><text x="38" y="70" class="bx-t">Standalone beyin</text><text x="38" y="93" class="bx-s">VEMS seri · CAN stream</text>
+          <rect x="20" y="128" width="290" height="70" rx="8" class="box"/><text x="38" y="158" class="bx-t">BMW ZF 6HP / 8HP</text><text x="38" y="181" class="bx-s">şanzıman · PT-CAN 500k</text>
+          <rect x="20" y="216" width="290" height="70" rx="8" class="box"/><text x="38" y="246" class="bx-t">OBD-II soketi</text><text x="38" y="269" class="bx-s">orijinal beyin · K-Line / CAN</text>
+          <rect x="20" y="304" width="290" height="70" rx="8" class="box"/><text x="38" y="334" class="bx-t">Geniş bant lambda</text><text x="38" y="357" class="bx-s">0–5 V analog · CAN</text>
+          <rect x="20" y="392" width="290" height="70" rx="8" class="box"/><text x="38" y="422" class="bx-t">Basınç / sıcaklık</text><text x="38" y="445" class="bx-s">yağ · yakıt · EGT · ATF</text>
+          <rect x="20" y="480" width="290" height="70" rx="8" class="box"/><text x="38" y="510" class="bx-t">Hız / devir sensörleri</text><text x="38" y="533" class="bx-s">hall · VR · tekerlek</text>
+        </g>
+        <!-- core -->
+        <g>
+          <rect x="420" y="150" width="280" height="300" rx="12" class="core"/>
+          <text x="440" y="186" class="core-t">ESP32-S3</text>
+          <text x="440" y="226" class="core-k">OKU</text><text x="440" y="246" class="core-v">CAN ×3 · K-Line · ADC · frekans</text>
+          <text x="440" y="284" class="core-k">ÇEVİR</text><text x="440" y="304" class="core-v">araç profilleri · mesaj tabloları</text>
+          <text x="440" y="342" class="core-k">KARAR VER</text><text x="440" y="362" class="core-v">kural motoru · histerezis · koruma</text>
+          <text x="440" y="400" class="core-k">YAZ</text><text x="440" y="420" class="core-v">CAN · röle · PWM · ekran</text>
+        </g>
+        <!-- outputs -->
+        <g>
+          <rect x="810" y="40" width="290" height="70" rx="8" class="box"/><text x="828" y="70" class="bx-t">Orijinal gösterge paneli</text><text x="828" y="93" class="bx-s">CAN emülasyonu · lambalar</text>
+          <rect x="810" y="128" width="290" height="70" rx="8" class="box"/><text x="828" y="158" class="bx-t">Analog gösterge</text><text x="828" y="181" class="bx-s">devir darbesi · hız darbesi · PWM</text>
+          <rect x="810" y="216" width="290" height="70" rx="8" class="box"/><text x="828" y="246" class="bx-t">EXTREMEECU ekranları</text><text x="828" y="269" class="bx-s">yuvarlak dash · AFR · cluster</text>
+          <rect x="810" y="304" width="290" height="70" rx="8" class="box"/><text x="828" y="334" class="bx-t">Röle ve güç çıkışları</text><text x="828" y="357" class="bx-s">fan · pompa · su-metanol · ışık</text>
+          <rect x="810" y="392" width="290" height="70" rx="8" class="box"/><text x="828" y="422" class="bx-t">Beyne geri besleme</text><text x="828" y="445" class="bx-s">vites · koruma · kesme isteği</text>
+          <rect x="810" y="480" width="290" height="70" rx="8" class="box"/><text x="828" y="510" class="bx-t">Kayıt ve telefon</text><text x="828" y="533" class="bx-s">microSD log · Wi-Fi canlı</text>
+        </g>
+      </svg>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--brand)"></i>CAN hattı</span>
+      <span><i style="background:var(--cold)"></i>seri · K-Line</span>
+      <span><i style="background:var(--warn)"></i>analog gerilim</span>
+      <span><i style="background:var(--ok)"></i>dijital · darbe · röle</span>
+      <span><i style="background:#c9ced6"></i>kart içi</span>
+      <span><i style="background:repeating-linear-gradient(90deg,var(--muted) 0 6px,transparent 6px 12px)"></i>kablosuz</span>
+    </div>
+  </div>
+</section>
+
+<!-- ================= MODULES ================= -->
+<section aria-labelledby="h-mods">
+  <div class="eyebrow">Modüller</div>
+  <h2 id="h-mods">Nerede duruyoruz</h2>
+  <div class="statkey">
+    <span><span class="st ready">Hazır</span> çalışıyor</span>
+    <span><span class="st code">Kodda var</span> araç testi bekliyor</span>
+    <span><span class="st next">Sıradaki</span> parça gelince</span>
+    <span><span class="st plan">Planlı</span> donanım gerekiyor</span>
+    <span><span class="st risk">Yüksek risk</span> en son, test tezgahında</span>
+  </div>
+  <div class="mods">
+    <article class="mod">
+      <span class="st ready">Hazır</span>
+      <h3>VEMS veri köprüsü</h3>
+      <p>VEMS v3'ün USB FTDI ya da TTL seri hattından TriggerFrame veya MegaTune "A" protokolüyle canlı veri, CRC kontrollü.</p>
+      <dl><dt>Örnek</dt><dd>RPM, MAP, CLT, IAT, TPS, lambda, avans, enjektör süresi</dd><dt>Donanım</dt><dd>mevcut kart</dd></dl>
+    </article>
+    <article class="mod">
+      <span class="st ready">Hazır</span>
+      <h3>Yuvarlak dash ve AFR saati</h3>
+      <p>Devir halkası, vites uyarı ışığı, eşik renkli kartlar, AFR bölgeleri, hedef farkı ve min/maks.</p>
+      <dl><dt>Örnek</dt><dd>benzin, E85, LPG, metanol stokiyometrisi</dd><dt>Donanım</dt><dd>ESP32-S3 2.1" dokunmatik</dd><dt>Sıradaki</dt><dd>5"–12.3" dijital cluster</dd></dl>
+    </article>
+    <article class="mod">
+      <span class="st code">Kodda var</span>
+      <h3>Orijinal gösterge emülasyonu</h3>
+      <p>VEMS verisi orijinal beynin CAN mesajlarına çevrilir; gösterge, lambalar ve immobilizer çalışmaya devam eder.</p>
+      <dl><dt>Hazır profil</dt><dd>Mazda RX-8</dd><dt>Sıradaki</dt><dd>BMW E46 (0x316, 0x329, 0x545), E9x (0x0AA, 0x1D0)</dd></dl>
+    </article>
+    <article class="mod">
+      <span class="st code">Kodda var</span>
+      <h3>Evrensel OBD-II okuyucu</h3>
+      <p>Takıldığı araçta CAN'i dinleyerek arar, yoksa K-Line'a geçer. Sadece servis 01 okuma sorusu gönderir.</p>
+      <dl><dt>Protokol</dt><dd>ISO 15765-4, ISO 14230-4, ISO 9141-2</dd><dt>Donanım</dt><dd>L9637D kartı · HW-184</dd></dl>
+    </article>
+    <article class="mod">
+      <span class="st next">Sıradaki</span>
+      <h3>BMW şanzıman verisi</h3>
+      <p>ZF 6HP / 8HP kontrol ünitesinin yayınını dinleme modunda okur: takılı vites, P-R-N-D, ATF sıcaklığı, kilit, çıkış mili hızı.</p>
+      <dl><dt>Risk</dt><dd>yok, hatta bit basılmaz</dd><dt>Donanım</dt><dd>HW-184 gelince</dd></dl>
+    </article>
+    <article class="mod">
+      <span class="st plan">Planlı</span>
+      <h3>Röle ve güç çıkışları</h3>
+      <p>Kural motoru: fan kademeleri, yakıt pompası ön basıncı, su-metanol, klima kesme, vites ışığı, motor koruma alarmı.</p>
+      <dl><dt>Kural</dt><dd>eşik + histerezis + gecikme, ESP32 kilitlenirse güvenli konum</dd><dt>Donanım</dt><dd>akıllı high-side sürücüler</dd></dl>
+    </article>
+    <article class="mod">
+      <span class="st plan">Planlı</span>
+      <h3>Sinyal üretme ve okuma</h3>
+      <p>Analog göstergeye devir ve hız darbesi, hararet için PWM; hall ve VR sensörlerinden frekans okuma; beyne analog sinyal.</p>
+      <dl><dt>Örnek</dt><dd>şanzımanın vitesi → VEMS analog girişi → vitese göre boost</dd><dt>Donanım</dt><dd>LEDC, PCNT, VR arabirimi</dd></dl>
+    </article>
+    <article class="mod">
+      <span class="st plan">Planlı</span>
+      <h3>CAN gateway ve profil kütüphanesi</h3>
+      <p>2–3 CAN hattı arasında canlı çeviri. Araç ve gösterge profilleri koda değil tabloya yazılır; yeni araç kod yazmadan eklenir.</p>
+      <dl><dt>Hız</dt><dd>100k, 125k, 250k, 500k, 1M · 11 ve 29 bit</dd><dt>Gecikme</dt><dd>1–2 ms</dd></dl>
+    </article>
+    <article class="mod">
+      <span class="st risk">Yüksek risk</span>
+      <h3>Şanzımana motor beyni taklidi</h3>
+      <p>ZF şanzıman BMW motor beyninden tork, devir ve pedal bekler. Yanlış tork debriyaj paketini yakar; bu iş önce hazır kontrolcülere bırakılır.</p>
+      <dl><dt>Ayrıca</dt><dd>bazı nesillerde ünite kodlama gerektirir</dd><dt>Kapsam dışı</dt><dd>FlexRay (F-serisinin bir kısmı)</dd></dl>
+    </article>
+  </div>
+</section>
+
+<!-- ================= CUSTOM CLUSTER ================= -->
+<section aria-labelledby="h-cl">
+  <div class="eyebrow">Custom gösterge paneli</div>
+  <h2 id="h-cl">Orijinal göstergenin yerine tam dijital cluster</h2>
+  <p class="sub">Swap'ta orijinal gösterge sökülüp yerine büyük bir ekran konabilir. Ekranı seçin; düzen ekranın oranına göre kendini kurar. Değerler üstteki simülasyonla aynı anda akar: ibreler, vites, ikaz lambaları, kilometre.</p>
+  <div class="screens" role="group" aria-label="Ekran seçimi" id="screens"></div>
+  <div class="cl-frame"><svg id="cluster" role="img" aria-label="Dijital gösterge paneli simülasyonu: devir ve hız ibreleri, vites, ikaz lambaları, kilometre, yakıt ve hararet"></svg></div>
+  <div class="cl-meta"><b id="clRes"></b><span class="cpu" id="clCpu"></span><span id="clNote"></span></div>
+  <div class="cl-feats">
+    <div><b>İbreler</b><span>Devir 0–8000 kırmızı bölgeli, hız 0–260 km/h. Vites anında devir kadranı yanıp söner.</span></div>
+    <div><b>İkaz lambaları</b><span>Sinyaller, uzun far, motor arıza, yağ, şarj, el freni, ABS, hararet. Kontak açılınca hepsi bir an yanar, lamba testi.</span></div>
+    <div><b>Bilgi</b><span>P-R-N-D ve vites, kilometre ve trip (kalıcı bellekte), yakıt, hararet, dış sıcaklık, saat. Geniş ekranda AFR, boost, ATF, yağ.</span></div>
+    <div><b>Veri</b><span>CAN (beyin, ABS, şanzıman), kablolu sinyaller, şamandıra direnci, hız darbesi. Kritik lambalar ayrıca LED şeridinde, ekran donsa da yanar.</span></div>
+  </div>
+</section>
+
+<!-- ================= RELAY LAB ================= -->
+<section aria-labelledby="h-lab">
+  <div class="eyebrow">Kural motoru · deneyin</div>
+  <h2 id="h-lab">Röleler kendi kendine karar verir</h2>
+  <p class="sub">Kaydırıcılar beyinden ve sensörlerden gelen değerleri temsil ediyor. Sağdaki her çıkış kendi kuralına göre açılıp kapanıyor. Fanlarda histerezis var: 92 °C'de açılan fan 88 °C'ye inmeden kapanmaz, röle titremez.</p>
+  <div class="lab">
+    <div class="panel">
+      <div class="panel-h"><h3>Girişler</h3><button class="btn red" id="ignBtn" type="button" aria-pressed="true">Kontak açık</button></div>
+      <div class="sl"><label for="rRpm">Devir <output id="oRpm" for="rRpm"></output></label><input type="range" id="rRpm" min="0" max="8000" step="50" value="3200"></div>
+      <div class="sl"><label for="rClt">Hararet (CLT) <output id="oClt" for="rClt"></output></label><input type="range" id="rClt" min="20" max="120" step="1" value="94"></div>
+      <div class="sl"><label for="rIat">Emme havası (IAT) <output id="oIat" for="rIat"></output></label><input type="range" id="rIat" min="10" max="80" step="1" value="38"></div>
+      <div class="sl"><label for="rMap">Manifold basıncı (MAP) <output id="oMap" for="rMap"></output></label><input type="range" id="rMap" min="20" max="250" step="1" value="165"></div>
+      <div class="sl"><label for="rSpd">Hız (şanzımandan) <output id="oSpd" for="rSpd"></output></label><input type="range" id="rSpd" min="0" max="250" step="1" value="90"></div>
+      <div class="sl"><label for="rOil">Yağ basıncı <output id="oOil" for="rOil"></output></label><input type="range" id="rOil" min="0" max="6" step="0.1" value="3.2"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-h"><h3>Çıkışlar</h3><span class="simnote">kanal · kural · durum</span></div>
+      <div class="outs" id="outs"></div>
+      <p class="failsafe">ESP32 kilitlenir ya da besleme düşerse bekçi zamanlayıcısı çıkışları güvenli konuma alır: fanlar açık, su-metanol ve klima kesme kapalı, yakıt pompası beynin kendi rölesine döner.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SWAP SCENARIO ================= -->
+<section aria-labelledby="h-swap">
+  <div class="eyebrow">Örnek tam swap</div>
+  <h2 id="h-swap">VEMS + BMW ZF 6HP + orijinal gösterge</h2>
+  <p class="sub">Standalone beyinli, BMW otomatik şanzımanlı ve orijinal CAN göstergeli bir araçta hangi sinyalin nereden nereye, hangi yolla ve ne sıklıkla gittiği.</p>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Sinyal</th><th>Kaynak</th><th>Hedef</th><th>Yol</th><th>Periyot</th><th>Durum</th></tr></thead>
+      <tbody>
+        <tr><td><b>Devir, hararet</b></td><td>VEMS</td><td>orijinal gösterge</td><td class="m">seri → CAN profili</td><td class="m">20 / 100 ms</td><td><span class="st code">Kodda var</span></td></tr>
+        <tr><td><b>Arıza ve yağ lambası</b></td><td>VEMS durum bitleri</td><td>orijinal gösterge</td><td class="m">seri → CAN profili</td><td class="m">100 ms</td><td><span class="st code">Kodda var</span></td></tr>
+        <tr><td><b>Lambda, AFR</b></td><td>VEMS geniş bant</td><td>AFR saati</td><td class="m">seri → ekran</td><td class="m">40 ms</td><td><span class="st ready">Hazır</span></td></tr>
+        <tr><td><b>Takılı vites, P-R-N-D</b></td><td>ZF kontrol ünitesi</td><td>dash, gösterge</td><td class="m">PT-CAN dinle → ekran / CAN</td><td class="m">yayın hızında</td><td><span class="st next">Sıradaki</span></td></tr>
+        <tr><td><b>ATF sıcaklığı</b></td><td>ZF kontrol ünitesi</td><td>dash, uyarı</td><td class="m">PT-CAN dinle</td><td class="m">yayın hızında</td><td><span class="st next">Sıradaki</span></td></tr>
+        <tr><td><b>Vites → boost tablosu</b></td><td>ZF kontrol ünitesi</td><td>VEMS analog girişi</td><td class="m">CAN → PWM → RC filtre</td><td class="m">50 ms</td><td><span class="st plan">Planlı</span></td></tr>
+        <tr><td><b>Araç hızı</b></td><td>şanzıman çıkış mili</td><td>analog hız göstergesi</td><td class="m">CAN → darbe çıkışı</td><td class="m">sürekli</td><td><span class="st plan">Planlı</span></td></tr>
+        <tr><td><b>Fan, pompa, su-metanol</b></td><td>CLT, MAP, IAT</td><td>röleler</td><td class="m">kural motoru → güç çıkışı</td><td class="m">50 ms</td><td><span class="st plan">Planlı</span></td></tr>
+        <tr><td><b>Yağ basıncı koruması</b></td><td>basınç sensörü</td><td>dash alarmı, VEMS kesme</td><td class="m">ADC → dijital çıkış</td><td class="m">10 ms</td><td><span class="st plan">Planlı</span></td></tr>
+        <tr><td><b>Tork, devir, pedal</b></td><td>VEMS</td><td>ZF kontrol ünitesi</td><td class="m">seri → PT-CAN (DME taklidi)</td><td class="m">10 ms</td><td><span class="st risk">Yüksek risk</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ================= HARDWARE ================= -->
+<section aria-labelledby="h-hw">
+  <div class="eyebrow">Donanım</div>
+  <h2 id="h-hw">Geliştirme kartından swap kartına</h2>
+  <p class="sub">Bugün her şey Waveshare ESP32-S3 ekran kartı ve harici modüllerle çalışıyor. Tam swap için aynı işlemcinin etrafına araç tipi bir G/Ç kartı gerekiyor. Sağ sütun hedef özellikler; tasarımı henüz yapılmadı.</p>
+  <div class="tbl">
+    <table class="cmp">
+      <thead><tr><th></th><th>Bugün</th><th>Swap kartı (hedef)</th></tr></thead>
+      <tbody>
+        <tr><td>İşlemci</td><td>ESP32-S3, 8 MB PSRAM</td><td>aynı</td></tr>
+        <tr><td>Ekran</td><td>2.1" yuvarlak dokunmatik</td><td>aynı; 5"–7" cluster ESP32-S3, 8.8"+ geniş cluster ESP32-P4; ek ekranlar CAN ya da ESP-NOW ile</td></tr>
+        <tr><td>CAN</td><td>1 hat: dahili TWAI ya da HW-184</td><td>2–3 hat: TWAI + MCP2518FD, 125k–1M, 29 bit</td></tr>
+        <tr><td>K-Line</td><td>harici L9637D plaketi</td><td>kart üstünde</td></tr>
+        <tr><td>Analog giriş</td><td>yok</td><td>4–6 × 0–5 V, bölücü ve filtreli</td></tr>
+        <tr><td>Frekans giriş</td><td>yok</td><td>2 × hall / VR (VR arabirim entegresiyle)</td></tr>
+        <tr><td>Güç çıkışı</td><td>yok</td><td>6–8 × akıllı high-side sürücü, akım ölçümlü, kısa devre korumalı</td></tr>
+        <tr><td>Sinyal çıkışı</td><td>yok</td><td>devir ve hız darbesi, 2 × PWM</td></tr>
+        <tr><td>Besleme</td><td>USB şarj aleti</td><td>9–16 V araç beslemesi, ters kutup ve yük atımı koruması</td></tr>
+        <tr><td>Konnektör</td><td>kablo ve header</td><td>su geçirmez otomotiv konnektörü</td></tr>
+        <tr><td>Kayıt</td><td>yok</td><td>microSD log, Wi-Fi ile telefondan izleme</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ================= PHASES ================= -->
+<section aria-labelledby="h-ph">
+  <div class="eyebrow">Yol haritası</div>
+  <h2 id="h-ph">Okumadan kontrole, adım adım</h2>
+  <ol class="phases">
+    <li class="now"><span class="n">0</span><b>Bugün</b><span>VEMS köprüsü, yuvarlak dash, AFR sayfası, RX-8 CAN çıkışı, OBD K-Line / CAN okuyucu.</span></li>
+    <li><span class="n">1</span><b>Dinle</b><span>CAN modülü gelince: dinleme sayfası, ZF vites ve ATF okuma, OBD-CAN araç testi.</span></li>
+    <li><span class="n">2</span><b>Profiller</b><span>Tablo tabanlı araç ve gösterge profilleri: BMW E46 / E9x, RX-8, ilk VAG.</span></li>
+    <li><span class="n">3</span><b>G/Ç kartı</b><span>Güç çıkışları, analog ve frekans girişleri, kural motoru, bekçi zamanlayıcısı.</span></li>
+    <li><span class="n">4</span><b>Gateway</b><span>Çok hatlı çeviri, analog gösterge sinyalleri, dijital cluster, ek ekranlar, kayıt.</span></li>
+    <li><span class="n">5</span><b>Şanzıman</b><span>Sadece hazır kontrolcünün yetmediği yerde, önce test tezgahında.</span></li>
+  </ol>
+</section>
+
+<!-- ================= PRINCIPLES ================= -->
+<section aria-labelledby="h-rules">
+  <div class="eyebrow">İlkeler</div>
+  <h2 id="h-rules">Motoru ve şanzımanı korumak için</h2>
+  <div class="rules">
+    <div class="rule hot"><b>Önce dinle</b><p>Yeni bir araçta ilk iş dinleme modu. Hatta bit basmadan mesaj listesi çıkarılır, sonra yazmaya geçilir.</p></div>
+    <div class="rule hot"><b>Kritik kontrol beyinde kalır</b><p>Ateşleme, yakıt ve şanzıman basıncı beynin işidir. Kart koruma ve kesme isteği gönderir, motoru yönetmez.</p></div>
+    <div class="rule"><b>Her çıkışın güvenli bir hali var</b><p>Kart susarsa ne olacağı her çıkış için önceden yazılır: fan açık, su-metanol kapalı.</p></div>
+    <div class="rule"><b>Okuma ile yazma ayrı</b><p>OBD tarafı yalnızca servis 01 gönderir. Silme, test ve kodlama komutları firmware'de yoktur.</p></div>
+    <div class="rule"><b>Kapsam dışı olanlar açık yazılır</b><p>FlexRay, ünite kodlama ve şanzıman yazılımı bu platformun işi değil; bunlar için tuning araçları kullanılır.</p></div>
+    <div class="rule"><b>Araç tipi elektrik</b><p>Sigortalı ve akım ölçümlü çıkışlar, ters kutup ve gerilim sıçraması koruması, su geçirmez konnektör.</p></div>
+  </div>
+</section>
+
+<footer>EXTREMEECU · ESP32-S3 swap platformu · üstteki göstergeler simülasyondur, gerçek araç verisi değildir</footer>
+</div>
+
+<script>
+(() => {
+  const NS = 'http://www.w3.org/2000/svg';
+  const $ = id => document.getElementById(id);
+  const el = (tag, attrs, text) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (text !== undefined) e.textContent = text;
+    return e;
+  };
+  const C = {fg:'#f1f3f6', muted:'#8a909c', brand:'#ee2323', cold:'#00c8ff', ok:'#2ed47a', warn:'#ffb020', alert:'#ff3b30'};
+  const ARC = 'M92.9 387.1A208 208 0 1 1 387.1 387.1';
+  const polar = (frac, r) => {
+    const a = (135 + 270 * frac) * Math.PI / 180;
+    return [240 + r * Math.cos(a), 240 + r * Math.sin(a)];
+  };
+
+  /* ---------- dash ---------- */
+  const RPM_MAX = 8000, SHIFT = 6500;
+  const ticks = $('dashTicks');
+  for (let i = 1; i <= 7; i++) {   // 0 and 8 sit where the tiles are
+    const [x, y] = polar(i / 8, 174);
+    ticks.appendChild(el('text', {x: x.toFixed(1), y: (y + 8).toFixed(1), class: 'tick' + (i >= 7 ? ' red' : '')}, i));
+  }
+  const TILES = [
+    {k: 'afr', cap: 'AFR', x: 105, y: 278}, {k: 'map', cap: 'MAP kPa', x: 197, y: 278}, {k: 'atf', cap: 'ATF °C', x: 289, y: 278},
+    {k: 'clt', cap: 'CLT °C', x: 105, y: 330}, {k: 'iat', cap: 'IAT °C', x: 197, y: 330}, {k: 'oil', cap: 'YAĞ bar', x: 289, y: 330},
+  ];
+  const tileEls = {};
+  const tg = $('dTiles');
+  TILES.forEach(t => {
+    tg.appendChild(el('rect', {x: t.x, y: t.y, width: 86, height: 48, rx: 6, class: 't-box'}));
+    tg.appendChild(el('text', {x: t.x + 9, y: t.y + 15, class: 't-cap'}, t.cap));
+    tileEls[t.k] = el('text', {x: t.x + 9, y: t.y + 41, class: 't-v'}, '--');
+    tg.appendChild(tileEls[t.k]);
+  });
+
+  /* ---------- AFR gauge ---------- */
+  const AFR_LO = 10, AFR_HI = 20;
+  const ZONES = [
+    {to: 11.5, name: 'ÇOK ZENGİN', c: C.alert},
+    {to: 12.8, name: 'GÜÇ', c: C.cold},
+    {to: 14.2, name: 'ZENGİN', c: '#7fe0b0'},
+    {to: 15.2, name: 'STOKİYOMETRİK', c: C.ok},
+    {to: 16.5, name: 'FAKİR', c: C.warn},
+    {to: 99,   name: 'ÇOK FAKİR', c: C.alert},
+  ];
+  const afrFrac = a => Math.min(1, Math.max(0, (a - AFR_LO) / (AFR_HI - AFR_LO)));
+  const zoneOf = a => ZONES.find(z => a < z.to);
+  const zg = $('afrZones');
+  let from = AFR_LO;
+  ZONES.forEach(z => {
+    const to = Math.min(z.to, AFR_HI);
+    const s = afrFrac(from) * 100, e = afrFrac(to) * 100;
+    zg.appendChild(el('path', {d: ARC, pathLength: 100, class: 'a-zone', stroke: z.c, 'stroke-opacity': .55,
+      'stroke-dasharray': `${(e - s).toFixed(2)} 100`, 'stroke-dashoffset': (-s).toFixed(2)}));
+    from = to;
+  });
+  const at = $('afrTicks');
+  [10, 12, 14, 16, 18, 20].forEach(v => {
+    const [x, y] = polar(afrFrac(v), 174);
+    at.appendChild(el('text', {x: x.toFixed(1), y: (y + 8).toFixed(1), class: 'tick'}, v));
+  });
+
+  /* ---------- simulation: VEMS + ZF 6HP, gasoline ---------- */
+  const RATIO = [0, 4.17, 2.34, 1.52, 1.14, 0.87, 0.69], FD = 3.15, CIRC = 2.0;
+  const ACC = [0, 8, 5.5, 3.6, 2.6, 1.8, 1.2];
+  const conv = (v, g) => v / CIRC * 60 * RATIO[g] * FD;
+  const PH = [{n: 'idle', e: 3}, {n: 'wot', e: 13.5}, {n: 'lift', e: 17.5}, {n: 'cruise', e: 21}, {n: 'brake', e: 28}, {n: 'idle', e: 30}];
+  const lag = (cur, tgt, tau, dt) => cur + (tgt - cur) * Math.min(1, dt / tau);
+  const bestGear = (v, minRpm) => { for (let g = 6; g >= 1; g--) if (conv(v, g) >= minRpm) return g; return 1; };
+  const s = {T: 0, v: 0, g: 0, rpm: 850, map: 34, afr: 14.6, tgt: 14.7, clt: 88, atf: 82, iat: 31, oil: 1.9, ph: 'idle', amin: 14.6, amax: 14.6, dist: 0};
+
+  function step(dt) {
+    s.T += dt;
+    if (s.T >= 30) { s.T -= 30; s.v = 0; s.g = 0; s.amin = s.amax = s.afr; }
+    const T = s.T;
+    const ph = PH.find(p => T < p.e).n;
+    let cltT = 89, atfT = 84;
+    if (ph === 'idle') { s.v = 0; s.g = (T < 2.2) ? 0 : 1; }
+    else if (ph === 'wot') {
+      if (s.g < 1) s.g = 1;
+      s.v += ACC[s.g] * dt;
+      if (conv(s.v, s.g) >= 6700) {
+        if (s.g < 4) s.g++;
+        else s.v = 6700 * CIRC / (60 * RATIO[4] * FD);
+      }
+      cltT = 95; atfT = 92;
+    }
+    else if (ph === 'lift') { s.v = Math.max(0, s.v - 2.5 * dt); const g = bestGear(s.v, 1700); if (g > s.g) s.g = g; }
+    else if (ph === 'cruise') { const g = bestGear(s.v, 1500); if (g > s.g) s.g = g; }
+    else if (ph === 'brake') { s.v = Math.max(0, s.v - 6 * dt); const g = bestGear(s.v, 1150); if (g < s.g) s.g = g; }
+
+    const idle = 850 + Math.sin(T * 7) * 15;
+    let r = (s.g > 0 && s.v > 0) ? conv(s.v, s.g) : 0;
+    if (ph === 'wot' && s.g === 1) r = Math.max(r, Math.min(2900, 1200 + (T - 3) * 3000));   // converter stall
+    s.rpm = lag(s.rpm, Math.max(idle, r), 0.08, dt);
+
+    const mapT = ph === 'wot' ? 100 + 105 * Math.min(1, Math.max(0, (s.rpm - 2400) / 2200))
+               : ph === 'cruise' ? 55 : (ph === 'lift' || ph === 'brake') ? 24 : 34;
+    s.map = lag(s.map, mapT, 0.25, dt);
+
+    const cut = (ph === 'lift' && T < 15.2) || (ph === 'brake' && s.rpm > 1400);
+    s.tgt = ph === 'wot' ? (s.map > 110 ? 11.8 : 13.2) : 14.7;
+    s.afr = lag(s.afr, cut ? 19.6 : s.tgt, 0.3, dt) + (Math.random() - .5) * 0.04;
+    s.amin = Math.min(s.amin, s.afr); s.amax = Math.max(s.amax, s.afr);
+    s.clt = lag(s.clt, cltT, 8, dt);
+    s.atf = lag(s.atf, atfT, 14, dt);
+    s.iat = lag(s.iat, 30 + Math.max(0, s.map - 100) * 0.07, 3, dt);
+    s.oil = Math.min(5.4, 1.4 + s.rpm / 1500);
+    s.dist += s.v * dt;
+    s.ph = ph;
+  }
+
+  let blink = false;
+  function render() {
+    const rpm = Math.round(s.rpm / 10) * 10;
+    $('dRpm').textContent = rpm;
+    const ring = $('ring');
+    ring.setAttribute('stroke-dasharray', `${Math.min(100, s.rpm / RPM_MAX * 100).toFixed(2)} 100`);
+    const shift = s.rpm >= SHIFT;
+    blink = shift && !blink;
+    ring.classList.toggle('hot', shift);
+    $('dRpm').style.fill = (shift && blink) ? C.brand : C.fg;
+    $('bezel').style.opacity = (shift && blink) ? 1 : 0;
+    $('dGear').textContent = s.g === 0 ? 'P' : 'D' + s.g;
+    $('dSpd').textContent = Math.round(s.v * 3.6);
+
+    const z = zoneOf(s.afr);
+    tileEls.afr.textContent = s.afr.toFixed(1); tileEls.afr.style.fill = z.c;
+    tileEls.map.textContent = Math.round(s.map); tileEls.map.style.fill = s.map > 190 ? C.warn : C.fg;
+    tileEls.atf.textContent = Math.round(s.atf); tileEls.atf.style.fill = s.atf > 110 ? C.alert : C.fg;
+    tileEls.clt.textContent = Math.round(s.clt); tileEls.clt.style.fill = s.clt >= 105 ? C.alert : s.clt >= 98 ? C.warn : C.fg;
+    tileEls.iat.textContent = Math.round(s.iat); tileEls.iat.style.fill = s.iat >= 60 ? C.warn : C.fg;
+    tileEls.oil.textContent = s.oil.toFixed(1); tileEls.oil.style.fill = s.oil < 1 ? C.alert : C.fg;
+
+    $('aVal').textContent = s.afr.toFixed(1); $('aVal').setAttribute('fill', z.c);
+    $('aZone').textContent = z.name; $('aZone').setAttribute('fill', z.c);
+    $('aLam').textContent = (s.afr / 14.7).toFixed(2);
+    $('aTgt').textContent = s.tgt.toFixed(1);
+    $('aMin').textContent = s.amin.toFixed(1);
+    $('aMax').textContent = s.amax.toFixed(1);
+    const [mx, my] = polar(afrFrac(s.afr), 208);
+    $('afrMark').setAttribute('cx', mx.toFixed(1)); $('afrMark').setAttribute('cy', my.toFixed(1));
+
+    document.querySelectorAll('#chips .chip').forEach(c => c.classList.toggle('on', c.dataset.p === s.ph));
+    updateCluster();
+  }
+
+  /* ---------- custom cluster ---------- */
+  const SCREENS = [
+    {id: 's5',  name: '5"',    W: 800,  H: 480, cpu: 'ESP32-S3', c: C.ok,   note: 'Rahat. Kompakt cluster ya da orta konsol ekranı.'},
+    {id: 's7',  name: '7"',    W: 800,  H: 480, cpu: 'ESP32-S3', c: C.ok,   note: 'Rahat. Bugünkü yırtılmasız çift tampon yapısı aynen çalışır; prototip için önerilen.'},
+    {id: 's7h', name: '7"',    W: 1024, H: 600, cpu: 'ESP32-S3 · sınırda', c: C.warn, note: 'Çalışır, ama hareketli ibrelerde kare hızı düşer. ESP32-P4 daha rahat.'},
+    {id: 'b88', name: '8.8" bar', W: 1920, H: 480, cpu: 'ESP32-P4', c: C.cold, note: 'Geniş bar ekran. ESP32-S3\'ün ekran bant genişliği yetmez.'},
+    {id: 'b123', name: '12.3"', W: 1920, H: 720, cpu: 'ESP32-P4 · Raspberry Pi', c: C.cold, note: 'OEM dijital cluster boyutu. P4 1 saniyede açılır; Pi grafikte güçlü ama 10–20 saniyede açılır.'},
+  ];
+  const A0 = 150, SW = 240;
+  var CL = {p: null, refs: {}};   // var: render() may run before this line during warm-up
+  const f1 = n => n.toFixed(1);
+  const arcPath = (cx, cy, R, a0, a1) => {
+    const pt = a => [cx + R * Math.cos(a * Math.PI / 180), cy + R * Math.sin(a * Math.PI / 180)];
+    const [x0, y0] = pt(a0), [x1, y1] = pt(a1);
+    return `M${f1(x0)} ${f1(y0)}A${f1(R)} ${f1(R)} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${f1(x1)} ${f1(y1)}`;
+  };
+  const ICON = {
+    arrowL: c => `<path d="M2 12L10 4V8H21V16H10V20Z" fill="${c}"/>`,
+    arrowR: c => `<path d="M22 12L14 4V8H3V16H14V20Z" fill="${c}"/>`,
+    beam: c => `<path d="M12 5C18.5 5 21 8.5 21 12S18.5 19 12 19Z" fill="${c}"/><path d="M2 7H9M2 10H9M2 13H9M2 16H9" stroke="${c}" stroke-width="2" stroke-linecap="round"/>`,
+    cel: c => `<path d="M6 8H8V6H14V8H16L18 10H20V8H22V17H20V15H18L16.5 17H8L6 15H4V17H2V10H4V8Z" fill="${c}"/>`,
+    oil: c => `<path d="M2 10H7L9 8H14L21 6V8.5L15.5 15H5L2 12Z" fill="${c}"/><path d="M20.5 12.5C20.5 13.6 19.9 14.5 19 14.5S17.5 13.6 17.5 12.5C17.5 11.5 19 10 19 10S20.5 11.5 20.5 12.5Z" fill="${c}"/>`,
+    batt: c => `<rect x="2.5" y="7" width="19" height="13" rx="1.5" fill="none" stroke="${c}" stroke-width="2"/><path d="M5 4H9V7H5ZM15 4H19V7H15Z" fill="${c}"/><path d="M5.5 13.5H9.5M7.5 11.5V15.5M14.5 13.5H18.5" stroke="${c}" stroke-width="2" stroke-linecap="round"/>`,
+    brake: c => `<circle cx="12" cy="12" r="7" fill="none" stroke="${c}" stroke-width="2"/><path d="M12 8V13" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="16" r="1.3" fill="${c}"/><path d="M3.5 6.5C1.5 9.5 1.5 14.5 3.5 17.5M20.5 6.5C22.5 9.5 22.5 14.5 20.5 17.5" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round"/>`,
+    abs: c => `<circle cx="12" cy="12" r="7.5" fill="none" stroke="${c}" stroke-width="2"/><text x="12" y="14.6" text-anchor="middle" font-family="Barlow,sans-serif" font-weight="700" font-size="7" fill="${c}">ABS</text><path d="M3 6.5C1 9.5 1 14.5 3 17.5M21 6.5C23 9.5 23 14.5 21 17.5" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round"/>`,
+    temp: c => `<path d="M11 3H13V14.3A3.2 3.2 0 1 1 11 14.3Z" fill="${c}"/><path d="M14 6H17M14 9H17" stroke="${c}" stroke-width="1.8"/><path d="M3 21C5 20 7 22 9 21M15 21C17 20 19 22 21 21" fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round"/>`,
+  };
+  const LAMPS = [
+    {k: 'beam', c: '#2f8cff'}, {k: 'cel', c: C.warn}, {k: 'oil', c: C.alert}, {k: 'batt', c: C.alert},
+    {k: 'brake', c: C.alert}, {k: 'abs', c: C.warn}, {k: 'temp', c: C.alert},
+  ];
+
+  function dial(id, cx, cy, r, max, major, minor, labelEvery, redFrom, labelDiv) {
+    const ang = v => A0 + SW * v / max;
+    let g = `<circle cx="${f1(cx)}" cy="${f1(cy)}" r="${f1(r)}" fill="#050608" stroke="#2a2f37" stroke-width="${f1(r * .02)}"/>`;
+    g += `<circle id="${id}Rim" cx="${f1(cx)}" cy="${f1(cy)}" r="${f1(r * .985)}" fill="none" stroke="${C.brand}" stroke-width="${f1(r * .035)}" opacity="0"/>`;
+    if (redFrom < max) g += `<path d="${arcPath(cx, cy, r * .935, ang(redFrom), ang(max))}" fill="none" stroke="${C.brand}" stroke-width="${f1(r * .07)}" opacity=".8"/>`;
+    for (let v = 0; v <= max + 1e-6; v += minor) {
+      const isMajor = Math.abs(v / major - Math.round(v / major)) < 1e-6;
+      const a = ang(v) * Math.PI / 180, r0 = r * (isMajor ? .84 : .9), r1 = r * .97;
+      g += `<line x1="${f1(cx + r0 * Math.cos(a))}" y1="${f1(cy + r0 * Math.sin(a))}" x2="${f1(cx + r1 * Math.cos(a))}" y2="${f1(cy + r1 * Math.sin(a))}" stroke="${v >= redFrom ? C.brand : '#d9dde3'}" stroke-width="${f1(r * (isMajor ? .02 : .009))}"/>`;
+    }
+    for (let v = 0; v <= max + 1e-6; v += labelEvery) {
+      const a = ang(v) * Math.PI / 180;
+      g += `<text x="${f1(cx + r * .7 * Math.cos(a))}" y="${f1(cy + r * .7 * Math.sin(a) + r * .045)}" text-anchor="middle" font-family="Rajdhani,sans-serif" font-weight="700" font-size="${f1(r * .13)}" fill="${v >= redFrom ? C.brand : '#e8ebef'}">${v / labelDiv}</text>`;
+    }
+    g += `<g id="${id}N" transform="translate(${f1(cx)} ${f1(cy)}) rotate(${A0})"><polygon points="${f1(-r * .1)},${f1(-r * .02)} ${f1(r * .86)},${f1(-r * .006)} ${f1(r * .86)},${f1(r * .006)} ${f1(-r * .1)},${f1(r * .02)}" fill="#ff3b30"/></g>`;
+    g += `<circle cx="${f1(cx)}" cy="${f1(cy)}" r="${f1(r * .075)}" fill="#1a1d22" stroke="#3a404a" stroke-width="${f1(r * .015)}"/>`;
+    return g;
+  }
+
+  function buildCluster(p) {
+    const {W, H} = p;
+    const t = Math.round(H * .12), b = Math.round(H * .1), area = H - t - b, cy = t + area / 2, m = H * .05;
+    const r = Math.min(area / 2 - H * .02, (W - 2 * m - H * .2) / 4);
+    const lcx = m + r, rcx = W - m - r;
+    const x0 = lcx + r + H * .03, x1 = rcx - r - H * .03, cw = x1 - x0, cx = (x0 + x1) / 2;
+    const wide = cw >= H * .55;
+    const mono = 'JetBrains Mono,monospace', disp = 'Rajdhani,sans-serif';
+    let g = `<rect width="${W}" height="${H}" fill="#020203"/>`;
+    g += `<rect y="${t}" width="${W}" height="1" fill="#15181d"/><rect y="${H - b}" width="${W}" height="1" fill="#15181d"/>`;
+    // dials
+    g += dial('cT', lcx, cy, r, 8000, 1000, 500, 1000, 6500, 1000);
+    g += dial('cS', rcx, cy, r, 260, 20, 10, 40, 999, 1);
+    g += `<text x="${f1(lcx)}" y="${f1(cy - r * .3)}" text-anchor="middle" font-family="${mono}" font-size="${f1(r * .07)}" fill="#7d8592">×1000 RPM</text>`;
+    g += `<text id="cGearT" x="${f1(lcx)}" y="${f1(cy + r * .52)}" text-anchor="middle" font-family="${disp}" font-weight="700" font-size="${f1(r * .28)}" fill="#fff">P</text>`;
+    g += `<text id="cSpd" x="${f1(rcx)}" y="${f1(cy + r * .5)}" text-anchor="middle" font-family="${disp}" font-weight="700" font-size="${f1(r * .27)}" fill="#fff">0</text>`;
+    g += `<text x="${f1(rcx)}" y="${f1(cy + r * .64)}" text-anchor="middle" font-family="${mono}" font-size="${f1(r * .07)}" fill="#7d8592">km/h</text>`;
+    // tell-tales
+    const sz = t * .62, ty = t / 2 - sz / 2;
+    g += `<g id="cL_arrowL" opacity=".12" transform="translate(${f1(lcx - sz / 2)} ${f1(ty)}) scale(${f1(sz / 24)})">${ICON.arrowL(C.ok)}</g>`;
+    g += `<g id="cL_arrowR" opacity=".12" transform="translate(${f1(rcx - sz / 2)} ${f1(ty)}) scale(${f1(sz / 24)})">${ICON.arrowR(C.ok)}</g>`;
+    const step = sz * 1.55, lx0 = W / 2 - step * (LAMPS.length - 1) / 2;
+    LAMPS.forEach((l, i) => {
+      g += `<g id="cL_${l.k}" opacity=".12" transform="translate(${f1(lx0 + i * step - sz / 2)} ${f1(ty)}) scale(${f1(sz / 24)})">${ICON[l.k](l.c)}</g>`;
+    });
+    // bottom strip
+    const fs = b * .4, by = H - b / 2 + fs * .36;
+    g += `<text x="${f1(m)}" y="${f1(by)}" font-family="${mono}" font-size="${f1(fs * .7)}" fill="#7d8592">ODO <tspan id="cOdo" fill="#e8ebef" font-size="${f1(fs)}">0</tspan></text>`;
+    g += `<text x="${f1(m + fs * 8.6)}" y="${f1(by)}" font-family="${mono}" font-size="${f1(fs * .7)}" fill="#7d8592">TRIP <tspan id="cTrip" fill="#e8ebef" font-size="${f1(fs)}">0</tspan></text>`;
+    g += `<text id="cClock" x="${f1(W - m)}" y="${f1(by)}" text-anchor="end" font-family="${mono}" font-size="${f1(fs)}" fill="#e8ebef">--:--</text>`;
+    g += `<text x="${f1(W - m - fs * 4.2)}" y="${f1(by)}" text-anchor="end" font-family="${mono}" font-size="${f1(fs)}" fill="#e8ebef">18 °C</text>`;
+    if (wide) {
+      // centre: gear, PRND, data tiles; fuel and coolant bars in the bottom strip
+      g += `<text id="cGear" x="${f1(cx)}" y="${f1(t + area * .34)}" text-anchor="middle" font-family="${disp}" font-weight="700" font-size="${f1(area * .32)}" fill="#fff">P</text>`;
+      const pr = ['P', 'R', 'N', 'D'], ps = Math.min(cw * .07, area * .1);
+      pr.forEach((c, i) => {
+        g += `<text id="cP_${c}" x="${f1(cx + (i - 1.5) * ps)}" y="${f1(t + area * .46)}" text-anchor="middle" font-family="${disp}" font-weight="700" font-size="${f1(area * .07)}" fill="#4a505c">${c}</text>`;
+      });
+      const tiles = [['afr', 'AFR'], ['boost', 'BOOST bar'], ['atf', 'ATF °C'], ['oil', 'YAĞ bar']];
+      const one = cw > H * 1.2, cols = one ? 4 : 2, gap = H * .02;
+      const tw = (cw - gap * (cols - 1)) / cols, th = area * (one ? .26 : .17), ty0 = t + area * (one ? .58 : .54);
+      tiles.forEach(([k, cap], i) => {
+        const x = x0 + (i % cols) * (tw + gap), y = ty0 + Math.floor(i / cols) * (th + gap);
+        g += `<rect x="${f1(x)}" y="${f1(y)}" width="${f1(tw)}" height="${f1(th)}" rx="${f1(H * .012)}" fill="#0b0d11" stroke="#22262e"/>`;
+        g += `<text x="${f1(x + th * .16)}" y="${f1(y + th * .3)}" font-family="${mono}" font-size="${f1(th * .17)}" fill="#7d8592">${cap}</text>`;
+        g += `<text id="cT_${k}" x="${f1(x + th * .16)}" y="${f1(y + th * .82)}" font-family="${disp}" font-weight="700" font-size="${f1(th * .48)}" fill="#f1f3f6">--</text>`;
+      });
+      const bw = cw * .36, bh = b * .22, bby = H - b / 2 - bh / 2;
+      [['cFuel', x0 + cw * .04, 'YAKIT'], ['cTemp', x0 + cw * .6, 'HARARET']].forEach(([id, x, cap]) => {
+        g += `<text x="${f1(x)}" y="${f1(bby - bh * .5)}" font-family="${mono}" font-size="${f1(fs * .6)}" fill="#7d8592">${cap}</text>`;
+        g += `<rect x="${f1(x)}" y="${f1(bby)}" width="${f1(bw)}" height="${f1(bh)}" rx="${f1(bh / 2)}" fill="#16181d"/>`;
+        g += `<rect id="${id}" x="${f1(x)}" y="${f1(bby)}" width="0" height="${f1(bh)}" rx="${f1(bh / 2)}" fill="#e8ebef"/>`;
+      });
+    } else {
+      // narrow: vertical fuel and coolant bars between the dials
+      const bw = cw * .26, bh = area * .56, top = cy - bh / 2;
+      [['cFuel', x0 + cw * .14, 'F', 'E'], ['cTemp', x0 + cw * .6, 'H', 'C']].forEach(([id, x, hi, lo]) => {
+        g += `<rect x="${f1(x)}" y="${f1(top)}" width="${f1(bw)}" height="${f1(bh)}" rx="${f1(bw / 2)}" fill="#16181d"/>`;
+        g += `<rect id="${id}" x="${f1(x)}" y="${f1(top + bh)}" width="${f1(bw)}" height="0" rx="${f1(bw / 2)}" fill="#e8ebef"/>`;
+        g += `<text x="${f1(x + bw / 2)}" y="${f1(top - bw * .5)}" text-anchor="middle" font-family="${mono}" font-size="${f1(bw * .8)}" fill="#7d8592">${hi}</text>`;
+        g += `<text x="${f1(x + bw / 2)}" y="${f1(top + bh + bw * 1.3)}" text-anchor="middle" font-family="${mono}" font-size="${f1(bw * .8)}" fill="#7d8592">${lo}</text>`;
+      });
+    }
+    const svg = $('cluster');
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svg.innerHTML = g;
+    CL.p = p; CL.wide = wide; CL.tc = [lcx, cy]; CL.sc = [rcx, cy];
+    CL.fuelBox = {top: cy - area * .28, bh: area * .56, bw: cw * .36};
+    CL.refs = {};
+    svg.querySelectorAll('[id]').forEach(e => { CL.refs[e.id] = e; });
+    $('clRes').textContent = `${p.name} · ${p.W} × ${p.H} px`;
+    $('clCpu').textContent = p.cpu; $('clCpu').style.color = p.c;
+    $('clNote').textContent = p.note;
+    document.querySelectorAll('#screens .scr').forEach(bn => bn.setAttribute('aria-pressed', bn.dataset.id === p.id));
+    updateCluster();
+  }
+
+  function updateCluster() {
+    if (!CL || !CL.p || !CL.refs.cTN) return;
+    const R = CL.refs;
+    const kmh = s.v * 3.6, gear = s.g === 0 ? 'P' : 'D' + s.g;
+    R.cTN.setAttribute('transform', `translate(${f1(CL.tc[0])} ${f1(CL.tc[1])}) rotate(${f1(A0 + SW * Math.min(1, s.rpm / 8000))})`);
+    R.cSN.setAttribute('transform', `translate(${f1(CL.sc[0])} ${f1(CL.sc[1])}) rotate(${f1(A0 + SW * Math.min(1, kmh / 260))})`);
+    R.cTRim.setAttribute('opacity', (s.rpm >= SHIFT && blink) ? 1 : 0);
+    R.cSpd.textContent = Math.round(kmh);
+    R.cGearT.textContent = gear;
+    // lamps: key-on bulb check at the start of each loop, then real conditions
+    const check = s.T < 1.2, tick = Math.floor(s.T / .38) % 2 === 0;
+    const on = {
+      arrowL: s.T > 17.6 && s.T < 20.2 && tick, arrowR: s.T > 22.2 && s.T < 24.4 && tick,
+      beam: s.ph === 'cruise', cel: check, oil: check || s.rpm < 400, batt: check || s.rpm < 400,
+      brake: check || s.g === 0, abs: check, temp: check || s.clt >= 105,
+    };
+    for (const k in on) if (R['cL_' + k]) R['cL_' + k].setAttribute('opacity', (on[k] || (check && k.startsWith('arrow'))) ? 1 : .12);
+    R.cOdo.textContent = Math.floor(128456 + s.dist / 1000).toLocaleString('tr-TR') + ' km';
+    R.cTrip.textContent = (342.7 + s.dist / 1000).toFixed(1) + ' km';
+    const d = new Date();
+    R.cClock.textContent = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    const fuel = Math.max(0, .62 - s.dist / 1000 / 600), temp = Math.min(1, Math.max(0, (s.clt - 40) / 90));
+    const tCol = s.clt >= 105 ? C.alert : C.fg;
+    if (CL.wide) {
+      R.cFuel.setAttribute('width', f1(CL.fuelBox.bw * fuel));
+      R.cTemp.setAttribute('width', f1(CL.fuelBox.bw * temp)); R.cTemp.setAttribute('fill', tCol);
+      R.cGear.textContent = gear;
+      ['P', 'R', 'N', 'D'].forEach(c => R['cP_' + c].setAttribute('fill', (s.g === 0 ? c === 'P' : c === 'D') ? '#fff' : '#4a505c'));
+      const z = zoneOf(s.afr);
+      R.cT_afr.textContent = s.afr.toFixed(1); R.cT_afr.setAttribute('fill', z.c);
+      const boost = (s.map - 100) / 100;
+      R.cT_boost.textContent = (boost >= 0 ? '+' : '') + boost.toFixed(2);
+      R.cT_atf.textContent = Math.round(s.atf);
+      R.cT_oil.textContent = s.oil.toFixed(1); R.cT_oil.setAttribute('fill', s.oil < 1 ? C.alert : C.fg);
+    } else {
+      const {top, bh} = CL.fuelBox;
+      R.cFuel.setAttribute('y', f1(top + bh * (1 - fuel))); R.cFuel.setAttribute('height', f1(bh * fuel));
+      R.cTemp.setAttribute('y', f1(top + bh * (1 - temp))); R.cTemp.setAttribute('height', f1(bh * temp)); R.cTemp.setAttribute('fill', tCol);
+    }
+  }
+
+  const scrBox = $('screens');
+  SCREENS.forEach(p => {
+    const bn = document.createElement('button');
+    bn.type = 'button'; bn.className = 'scr'; bn.dataset.id = p.id; bn.setAttribute('aria-pressed', 'false');
+    bn.innerHTML = `${p.name} ${p.W}×${p.H}<small>${p.cpu}</small>`;
+    bn.addEventListener('click', () => buildCluster(p));
+    scrBox.appendChild(bn);
+  });
+  buildCluster(SCREENS[4]);
+
+  // start from a moment that shows the dash working (2nd gear pull)
+  for (let i = 0; i < 6.2 * 30; i++) step(1 / 30);
+  s.amin = 11.7; s.amax = 14.8;
+  render();
+
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let running = !reduce, last = 0, acc = 0;
+  const btn = $('simBtn');
+  btn.textContent = running ? 'Duraklat' : 'Oynat';
+  function frame(ts) {
+    if (!running) return;
+    if (!last) last = ts;
+    const dt = Math.min(0.1, (ts - last) / 1000);
+    last = ts; acc += dt;
+    step(dt);
+    if (acc >= 0.1) { acc = 0; render(); }   // dash UI refresh is 100 ms on the real firmware too
+    requestAnimationFrame(frame);
+  }
+  btn.addEventListener('click', () => {
+    running = !running;
+    btn.textContent = running ? 'Duraklat' : 'Oynat';
+    if (running) { last = 0; requestAnimationFrame(frame); }
+  });
+  if (running) requestAnimationFrame(frame);
+
+  /* ---------- relay lab ---------- */
+  const IN = {
+    rpm: ['rRpm', 'oRpm', v => v + ' rpm'],
+    clt: ['rClt', 'oClt', v => v + ' °C'],
+    iat: ['rIat', 'oIat', v => v + ' °C'],
+    map: ['rMap', 'oMap', v => v + ' kPa'],
+    spd: ['rSpd', 'oSpd', v => v + ' km/h'],
+    oil: ['rOil', 'oOil', v => Number(v).toFixed(1) + ' bar'],
+  };
+  const mem = {fan1: false, fan2: false};
+  let ign = true, primeUntil = performance.now() + 3000;
+  const hyst = (key, x, on, off) => { if (x >= on) mem[key] = true; else if (x <= off) mem[key] = false; return mem[key]; };
+  const OUTS = [
+    {id: 'pump', ch: 'OUT1', name: 'Yakıt pompası', rule: 'Kontak açılınca 3 s ön basınç, sonra motor dönerken açık',
+     f: x => x.ign && (x.prime || x.rpm > 400)},
+    {id: 'fan1', ch: 'OUT2', name: 'Fan 1. kademe', rule: 'CLT ≥ 92 °C aç, ≤ 88 °C kapat',
+     f: x => hyst('fan1', x.clt, 92, 88)},
+    {id: 'fan2', ch: 'OUT3', name: 'Fan 2. kademe', rule: 'CLT ≥ 98 °C aç, ≤ 94 °C kapat',
+     f: x => hyst('fan2', x.clt, 98, 94)},
+    {id: 'wmi', ch: 'OUT4', name: 'Su-metanol pompası', rule: 'MAP ≥ 160 kPa, IAT ≥ 35 °C ve devir ≥ 3000',
+     f: x => x.ign && x.map >= 160 && x.iat >= 35 && x.rpm >= 3000},
+    {id: 'ac', ch: 'OUT5', name: 'Klima kompresörü kesme', rule: 'MAP ≥ 180 kPa ya da devir ≥ 6000 iken kompresör ayrılır',
+     f: x => x.ign && (x.map >= 180 || x.rpm >= 6000)},
+    {id: 'spray', ch: 'OUT6', name: 'Intercooler fıskiyesi', rule: 'IAT ≥ 50 °C ve hız ≥ 20 km/h',
+     f: x => x.ign && x.iat >= 50 && x.spd >= 20},
+    {id: 'shift', ch: 'OUT7', name: 'Vites ışığı', rule: 'Devir ≥ 6500, yanıp söner', blink: true,
+     f: x => x.ign && x.rpm >= 6500},
+    {id: 'prot', ch: 'CAN', name: 'Motor koruma', rule: 'Yağ < 1.0 bar ve devir > 1500 ya da CLT ≥ 108 °C: alarm ve beyne kesme isteği', alarm: true,
+     f: x => x.ign && ((x.oil < 1.0 && x.rpm > 1500) || x.clt >= 108)},
+  ];
+  const outs = $('outs');
+  OUTS.forEach(o => {
+    const row = document.createElement('div');
+    row.className = 'out'; row.id = 'o-' + o.id;
+    row.innerHTML = `<span class="ch">${o.ch}</span><b>${o.name}</b><span class="led" aria-live="polite">KAPALI</span><small>${o.rule}</small>`;
+    outs.appendChild(row);
+  });
+  function evalLab() {
+    const x = {ign, prime: performance.now() < primeUntil};
+    for (const k in IN) {
+      const [sid, oid, fmt] = IN[k];
+      const v = Number($(sid).value);
+      x[k] = v;
+      $(oid).textContent = fmt(v);
+    }
+    OUTS.forEach(o => {
+      const on = o.f(x);
+      const row = $('o-' + o.id);
+      row.classList.toggle('on', on && !o.alarm);
+      row.classList.toggle('alarm', on && !!o.alarm);
+      row.classList.toggle('blink', on && !!o.blink);
+      row.querySelector('.led').textContent = on ? (o.alarm ? 'ALARM' : 'AÇIK') : 'KAPALI';
+    });
+  }
+  Object.values(IN).forEach(([sid]) => $(sid).addEventListener('input', evalLab));
+  const ignBtn = $('ignBtn');
+  ignBtn.addEventListener('click', () => {
+    ign = !ign;
+    ignBtn.setAttribute('aria-pressed', ign);
+    ignBtn.textContent = ign ? 'Kontak açık' : 'Kontak kapalı';
+    ignBtn.classList.toggle('red', ign);
+    if (ign) primeUntil = performance.now() + 3000;
+    evalLab();
+  });
+  evalLab();
+  setInterval(evalLab, 500);   // ends the fuel pump prime on time
+})();
+</script>

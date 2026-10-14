@@ -2,7 +2,9 @@
  * Main dashboard: RPM ring with shift light, big RPM, 2x3 tiles (MAP, AFR, TPS / CLT, IAT, BATT),
  * info + flags and the EXTREMEECU footer.
  */
+#include <math.h>
 #include <stdio.h>
+#include <string.h>
 #include "sdkconfig.h"
 #include "esp_timer.h"
 #include "board_lcd.h"
@@ -124,14 +126,29 @@ static void set_shift_light(bool on)
     }
 }
 
+#if CONFIG_VEMS_SOURCE_OBD
+#define INFO_FMT "#8A909C ADV#  %s   #8A909C LOAD#  %s   #8A909C KM/H#  %s"
+#define WAIT_TEXT LV_SYMBOL_REFRESH "  OBD ARANIYOR"
+#else
 #define INFO_FMT "#8A909C ADV#  %s   #8A909C PW#  %s   #8A909C VE#  %s"
+#define WAIT_TEXT LV_SYMBOL_USB "  VEMS BEKLENIYOR"
+#endif
+
+static void fmt_num(char *buf, size_t len, const char *fmt, float v)
+{
+    if (isnan(v)) {
+        strlcpy(buf, "--", len);
+    } else {
+        snprintf(buf, len, fmt, v);
+    }
+}
 
 void ui_main_update(const vems_data_t *d, bool fresh)
 {
     char buf[160];
 
     if (!fresh) {
-        ui_label_set(m.status, d->seq ? LV_SYMBOL_WARNING "  VERI YOK" : LV_SYMBOL_USB "  VEMS BEKLENIYOR");
+        ui_label_set(m.status, d->seq ? LV_SYMBOL_WARNING "  VERI YOK" : WAIT_TEXT);
         lv_obj_set_style_text_color(m.status, d->seq ? C_ALERT : C_WARN, 0);
         ui_label_set(m.rpm, "----");
         lv_obj_set_style_text_color(m.rpm, C_MUTED, 0);
@@ -154,8 +171,12 @@ void ui_main_update(const vems_data_t *d, bool fresh)
         m.rate_t0 = now;
         m.rate_seq0 = d->seq;
     }
+#if CONFIG_VEMS_SOURCE_OBD
+    snprintf(buf, sizeof(buf), LV_SYMBOL_OK "  OBD %s  |  %d Hz", vems_mode_name(d->mode), m.hz);
+#else
     snprintf(buf, sizeof(buf), LV_SYMBOL_OK "  VEMS %s %lu  |  %d Hz", d->mode == VEMS_MODE_TF ? "TF" : "A",
              (unsigned long)d->baud, m.hz);
+#endif
     ui_label_set(m.status, buf);
     lv_obj_set_style_text_color(m.status, C_OK, 0);
 
@@ -168,8 +189,7 @@ void ui_main_update(const vems_data_t *d, bool fresh)
     set_rpm_arc(d->rpm);
     set_shift_light(m.blink);
 
-    snprintf(buf, sizeof(buf), "%.0f", d->map_kpa);
-    ui_tile_set(&m.tiles[T_MAP], buf, d->map_kpa > 250 ? C_WARN : C_TEXT);
+    ui_tile_set_num(&m.tiles[T_MAP], "%.0f", d->map_kpa, d->map_kpa > 250 ? C_WARN : C_TEXT);
 
     if (ui_lambda_valid(d)) {
         snprintf(buf, sizeof(buf), "%.1f", d->lambda * ui_stoich_afr());
@@ -178,22 +198,22 @@ void ui_main_update(const vems_data_t *d, bool fresh)
         ui_tile_set(&m.tiles[T_AFR], "--", C_MUTED);
     }
 
-    snprintf(buf, sizeof(buf), "%.0f", d->tps_pct);
-    ui_tile_set(&m.tiles[T_TPS], buf, C_TEXT);
-
-    snprintf(buf, sizeof(buf), "%.0f", d->clt_c);
-    ui_tile_set(&m.tiles[T_CLT], buf, d->clt_c >= 105 ? C_ALERT : (d->clt_c >= 98 ? C_WARN : (d->clt_c < 40 ? C_ACCENT : C_TEXT)));
-
-    snprintf(buf, sizeof(buf), "%.0f", d->iat_c);
-    ui_tile_set(&m.tiles[T_IAT], buf, d->iat_c >= 60 ? C_WARN : C_TEXT);
-
-    snprintf(buf, sizeof(buf), "%.1f", d->batt_v);
-    ui_tile_set(&m.tiles[T_BATT], buf, (d->batt_v < 11.5f || d->batt_v > 15.5f) ? C_ALERT : (d->batt_v < 12.5f ? C_WARN : C_TEXT));
+    ui_tile_set_num(&m.tiles[T_TPS], "%.0f", d->tps_pct, C_TEXT);
+    ui_tile_set_num(&m.tiles[T_CLT], "%.0f", d->clt_c,
+                    d->clt_c >= 105 ? C_ALERT : (d->clt_c >= 98 ? C_WARN : (d->clt_c < 40 ? C_ACCENT : C_TEXT)));
+    ui_tile_set_num(&m.tiles[T_IAT], "%.0f", d->iat_c, d->iat_c >= 60 ? C_WARN : C_TEXT);
+    ui_tile_set_num(&m.tiles[T_BATT], "%.1f", d->batt_v,
+                    (d->batt_v < 11.5f || d->batt_v > 15.5f) ? C_ALERT : (d->batt_v < 12.5f ? C_WARN : C_TEXT));
 
     char adv[12], pw[12], ve[8];
-    snprintf(adv, sizeof(adv), "%.1f", d->ign_adv_deg);
-    snprintf(pw, sizeof(pw), "%.2f", d->pulsewidth_ms);
+    fmt_num(adv, sizeof(adv), "%.1f", d->ign_adv_deg);
+#if CONFIG_VEMS_SOURCE_OBD
+    fmt_num(pw, sizeof(pw), "%.0f", d->load_pct);
+    fmt_num(ve, sizeof(ve), "%.0f", d->speed_kmh);
+#else
+    fmt_num(pw, sizeof(pw), "%.2f", d->pulsewidth_ms);
     snprintf(ve, sizeof(ve), "%u", d->ve);
+#endif
     snprintf(buf, sizeof(buf), INFO_FMT, adv, pw, ve);
     ui_label_set(m.info, buf);
 

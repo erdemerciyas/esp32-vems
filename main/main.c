@@ -19,7 +19,9 @@
 
 static const char *TAG = "main";
 
-#if CONFIG_VEMS_TRANSPORT_UART
+#if CONFIG_VEMS_SOURCE_OBD
+// OBD-II source, no VEMS link
+#elif CONFIG_VEMS_TRANSPORT_UART
 #define VEMS_LINK vems_link_uart
 #else
 #define VEMS_LINK vems_link_usb_ftdi
@@ -91,7 +93,11 @@ static void boot_melody_task(void *arg)
 
 void app_main(void)
 {
+#if CONFIG_VEMS_SOURCE_OBD
+    ESP_LOGI(TAG, "EXTREMEECU dash, source: OBD-II");
+#else
     ESP_LOGI(TAG, "EXTREMEECU dash, link: %s, %d baud", VEMS_LINK.name, CONFIG_VEMS_BAUD);
+#endif
 
 #if CONFIG_VEMS_UI_ENABLE
     esp_lcd_panel_handle_t panel;
@@ -110,7 +116,12 @@ void app_main(void)
     vTaskDelay(pdMS_TO_TICKS(400));    // "EKRAN" step visible before USB host starts
 #endif
 
+#if CONFIG_VEMS_SOURCE_OBD
+    // after board_lcd_init(): the MCP2515 reuses the LCD init SPI pins
+    ESP_ERROR_CHECK(obd_start());
+#else
     ESP_ERROR_CHECK(vems_proto_start(&VEMS_LINK));
+#endif
 #if CONFIG_VEMS_CAN_ENABLE
     // after board_lcd_init(): GPIO1/2 are shared with the ST7701 init SPI
     if (can_out_start() != ESP_OK) {

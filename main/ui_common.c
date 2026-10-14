@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 #include "sdkconfig.h"
@@ -138,6 +139,17 @@ void ui_tile_set(ui_tile_t *t, const char *txt, lv_color_t color)
         lv_obj_set_style_border_color(t->box, plain ? C_TILE_BRD : color, 0);
         lv_obj_set_style_border_opa(t->box, plain ? LV_OPA_COVER : LV_OPA_60, 0);
     }
+}
+
+void ui_tile_set_num(ui_tile_t *t, const char *fmt, float v, lv_color_t color)
+{
+    char buf[16];
+    if (isnan(v)) {
+        ui_tile_set(t, "--", C_MUTED);
+        return;
+    }
+    snprintf(buf, sizeof(buf), fmt, v);
+    ui_tile_set(t, buf, color);
 }
 
 void ui_page_dots(lv_obj_t *scr, int active, int count)

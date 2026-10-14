@@ -22,12 +22,27 @@
 #define T_NAME_DELAY    800
 #define T_STEPS_DELAY   1200
 
+#if CONFIG_VEMS_SOURCE_OBD
+static const char *STEP_NAMES[STEP_COUNT] = {
+    "EKRAN",
+    "OBD ARAYUZU",
+    "PROTOKOL",
+    "ECU VERISI",
+};
+static const char *MSGS[STEP_COUNT + 1] = {"Baslatiliyor...", "OBD arayuzu baslatiliyor...",
+                                           "Protokol araniyor (CAN / K-Line)...", "ECU sorgulaniyor...", "Hazir"};
+#define VERSION_TEXT    "ESP32-S3  |  OBD-II  |  CAN / K-LINE"
+#else
 static const char *STEP_NAMES[STEP_COUNT] = {
     "EKRAN",
     "USB HOST",
     "VEMS USB (FTDI)",
     "ECU VERISI",
 };
+static const char *MSGS[STEP_COUNT + 1] = {"Baslatiliyor...", "USB host baslatiliyor...", "VEMS USB bekleniyor...",
+                                           "ECU sorgulaniyor...", "Hazir"};
+#define VERSION_TEXT    "ESP32-S3  |  VEMS v3  |  FW 1.2.x"
+#endif
 
 static struct {
     lv_obj_t *bar;
@@ -179,7 +194,7 @@ lv_obj_t *ui_splash_create(void)
     sp.msg = ui_label(grp, &ui_font_label, C_MUTED, "Baslatiliyor...");
     lv_obj_align(sp.msg, LV_ALIGN_TOP_MID, 0, 348);
 
-    lv_obj_t *ver = ui_label(grp, &ui_font_label, C_TICK, "ESP32-S3  |  VEMS v3  |  FW 1.2.x");
+    lv_obj_t *ver = ui_label(grp, &ui_font_label, C_TICK, VERSION_TEXT);
     lv_obj_align(ver, LV_ALIGN_TOP_MID, 0, 392);
 
     anim_group_opa_cb(grp, LV_OPA_TRANSP);
@@ -225,8 +240,6 @@ bool ui_splash_update(void)
             }
         }
         lv_bar_set_value(sp.bar, done * 100 / STEP_COUNT, LV_ANIM_ON);
-        static const char *MSGS[] = {"Baslatiliyor...", "USB host baslatiliyor...", "VEMS USB bekleniyor...",
-                                     "ECU sorgulaniyor...", "Hazir"};
         lv_label_set_text(sp.msg, MSGS[done]);
         lv_obj_set_style_text_color(sp.msg, done == STEP_COUNT ? C_OK : C_MUTED, 0);
     }
@@ -238,7 +251,7 @@ bool ui_splash_update(void)
         return elapsed_ms >= CONFIG_VEMS_UI_SPLASH_MIN_MS && (now - sp.ready_since) >= READY_HOLD_US;
     }
     if (elapsed_ms >= CONFIG_VEMS_UI_SPLASH_TIMEOUT_MS) {
-        return true;    // dashboard shows "VEMS BEKLENIYOR" itself
+        return true;    // dashboard shows "VEMS BEKLENIYOR" / "OBD ARANIYOR" itself
     }
     return false;
 }

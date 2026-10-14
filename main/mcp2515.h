@@ -17,12 +17,15 @@ typedef struct {
     int cs_gpio;
     int spi_hz;
     int osc_mhz;                // crystal on the module: 8 or 16
+    int kbps;                   // 500 or 250
+    bool listen_only;           // no TX, no ACK, no error frames (bit rate detection)
+    bool rx_all;                // receive every standard frame, rx_ids ignored
     const uint16_t *rx_ids;     // hardware acceptance filters, up to MCP2515_MAX_FILTERS
     size_t rx_id_count;         // 0 = receive nothing
 } mcp2515_config_t;
 
 /**
- * Resets the controller, sets 500 kbit/s + acceptance filters and enters normal mode.
+ * Resets the controller, sets the bit rate + acceptance filters and enters normal (or listen-only) mode.
  * Can be called again to re-probe; ESP_ERR_NOT_FOUND if the chip does not answer.
  */
 esp_err_t mcp2515_init(const mcp2515_config_t *cfg);

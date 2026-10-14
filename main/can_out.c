@@ -13,26 +13,7 @@
 #include "nvs_flash.h"
 #include "nvs.h"
 #include "can_out.h"
-
-#if CONFIG_VEMS_CAN_HW_TWAI
-#include "can_twai.h"
-#define can_hw_config_t     can_twai_config_t
-#define can_hw_init         can_twai_init
-#define can_hw_send         can_twai_send
-#define can_hw_recv         can_twai_recv
-#define can_hw_is_online    can_twai_is_online
-#define can_hw_go_offline   can_twai_go_offline
-#define can_hw_get_errors   can_twai_get_errors
-#else
-#include "mcp2515.h"
-#define can_hw_config_t     mcp2515_config_t
-#define can_hw_init         mcp2515_init
-#define can_hw_send         mcp2515_send
-#define can_hw_recv         mcp2515_recv
-#define can_hw_is_online    mcp2515_is_online
-#define can_hw_go_offline   mcp2515_go_offline
-#define can_hw_get_errors   mcp2515_get_errors
-#endif
+#include "can_hw.h"
 
 static const char *TAG = "can_out";
 
@@ -185,6 +166,7 @@ esp_err_t can_out_start(void)
     s_cfg = (can_twai_config_t) {
         .tx_gpio = CONFIG_VEMS_CAN_TWAI_TX_GPIO,
         .rx_gpio = CONFIG_VEMS_CAN_TWAI_RX_GPIO,
+        .kbps = 500,
         .rx_ids = s_profile->rx_ids,
         .rx_id_count = s_profile->rx_id_count,
     };
@@ -197,6 +179,7 @@ esp_err_t can_out_start(void)
         .cs_gpio = CONFIG_VEMS_CAN_CS_GPIO,
         .spi_hz = CONFIG_VEMS_CAN_SPI_KHZ * 1000,
         .osc_mhz = CONFIG_VEMS_CAN_OSC_MHZ,
+        .kbps = 500,
         .rx_ids = s_profile->rx_ids,
         .rx_id_count = s_profile->rx_id_count,
     };

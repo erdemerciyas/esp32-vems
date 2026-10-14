@@ -48,6 +48,7 @@ lv_obj_t *ui_label(lv_obj_t *parent, const lv_font_t *font, lv_color_t color, co
 void ui_label_set(lv_obj_t *label, const char *txt);   // only invalidates on change
 void ui_tile_create(ui_tile_t *t, lv_obj_t *parent, int x, int y, const char *caption);
 void ui_tile_set(ui_tile_t *t, const char *txt, lv_color_t color);
+void ui_tile_set_num(ui_tile_t *t, const char *fmt, float v, lv_color_t color);  // NAN (not supported by the ECU) -> "--"
 void ui_page_dots(lv_obj_t *scr, int active, int count);
 void ui_brand_footer(lv_obj_t *scr, int y);
 lv_obj_t *ui_ring_meter(lv_obj_t *scr);

@@ -1,6 +1,6 @@
 /*
  * CAN over the ESP32-S3 internal TWAI controller + external transceiver (TJA1050 / SN65HVD230).
- * Standard 11 bit ids only, fixed 500 kbit/s. Not thread safe: use from a single task.
+ * Standard 11 bit ids only, 500 or 250 kbit/s. Not thread safe: use from a single task.
  */
 #include <string.h>
 #include "driver/twai.h"
@@ -15,6 +15,7 @@ static const char *TAG = "can_twai";
 
 static const uint16_t *s_rx_ids;
 static size_t s_rx_id_count;
+static bool s_rx_all;
 
 static twai_filter_config_t make_filter(const uint16_t *ids, size_t n)
 {
@@ -58,13 +59,18 @@ esp_err_t can_twai_init(const can_twai_config_t *cfg)
 
     s_rx_ids = cfg->rx_ids;
     s_rx_id_count = cfg->rx_id_count;
+    s_rx_all = cfg->rx_all;
 
-    twai_general_config_t g = TWAI_GENERAL_CONFIG_DEFAULT(cfg->tx_gpio, cfg->rx_gpio, TWAI_MODE_NORMAL);
+    twai_general_config_t g = TWAI_GENERAL_CONFIG_DEFAULT(cfg->tx_gpio, cfg->rx_gpio,
+                                                          cfg->listen_only ? TWAI_MODE_LISTEN_ONLY : TWAI_MODE_NORMAL);
     g.tx_queue_len = TWAI_TX_QUEUE_LEN;
     g.rx_queue_len = TWAI_RX_QUEUE_LEN;
     g.alerts_enabled = TWAI_ALERT_NONE;
-    twai_timing_config_t t = TWAI_TIMING_CONFIG_500KBITS();
-    twai_filter_config_t f = make_filter(cfg->rx_ids, cfg->rx_id_count);
+    twai_timing_config_t t500 = TWAI_TIMING_CONFIG_500KBITS();
+    twai_timing_config_t t250 = TWAI_TIMING_CONFIG_250KBITS();
+    twai_timing_config_t t = cfg->kbps == 250 ? t250 : t500;
+    twai_filter_config_t f = cfg->rx_all ? (twai_filter_config_t)TWAI_FILTER_CONFIG_ACCEPT_ALL()
+                                         : make_filter(cfg->rx_ids, cfg->rx_id_count);
 
     ESP_RETURN_ON_ERROR(twai_driver_install(&g, &t, &f), TAG, "install");
     esp_err_t err = twai_start();
@@ -72,8 +78,8 @@ esp_err_t can_twai_init(const can_twai_config_t *cfg)
         twai_driver_uninstall();
         return err;
     }
-    ESP_LOGI(TAG, "ready, 500 kbit/s, TX GPIO%d, RX GPIO%d, %u rx id(s)",
-             cfg->tx_gpio, cfg->rx_gpio, (unsigned)cfg->rx_id_count);
+    ESP_LOGI(TAG, "ready, %d kbit/s%s, TX GPIO%d, RX GPIO%d, %u rx id(s)", cfg->kbps,
+             cfg->listen_only ? " listen-only" : "", cfg->tx_gpio, cfg->rx_gpio, (unsigned)cfg->rx_id_count);
     return ESP_OK;
 }
 
@@ -94,8 +100,8 @@ bool can_twai_recv(can_frame_t *f)
         if (m.extd || m.rtr) {
             continue;
         }
-        for (size_t i = 0; i < s_rx_id_count; i++) {
-            if (m.identifier == s_rx_ids[i]) {
+        for (size_t i = 0; i < (s_rx_all ? 1 : s_rx_id_count); i++) {
+            if (s_rx_all || m.identifier == s_rx_ids[i]) {
                 f->id = m.identifier;
                 f->dlc = m.data_length_code > 8 ? 8 : m.data_length_code;
                 memcpy(f->data, m.data, 8);

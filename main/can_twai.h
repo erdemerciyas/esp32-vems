@@ -9,12 +9,15 @@
 typedef struct {
     int tx_gpio;                // -> transceiver TXD
     int rx_gpio;                // <- transceiver RXD (3.3 V level!)
+    int kbps;                   // 500 or 250
+    bool listen_only;           // no TX, no ACK, no error frames (bit rate detection)
+    bool rx_all;                // receive every standard frame, rx_ids ignored
     const uint16_t *rx_ids;     // ids to receive, exact match in software
     size_t rx_id_count;         // 0 = receive nothing
 } can_twai_config_t;
 
 /**
- * (Re)installs the ESP32 internal TWAI controller at 500 kbit/s and starts it.
+ * (Re)installs the ESP32 internal TWAI controller and starts it.
  * Same contract as mcp2515_init(), but the controller is always present.
  */
 esp_err_t can_twai_init(const can_twai_config_t *cfg);

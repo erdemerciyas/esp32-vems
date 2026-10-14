@@ -12,6 +12,11 @@ typedef enum {
     VEMS_MODE_NONE = 0,
     VEMS_MODE_TF,               // TriggerFrame: 7E A0 BF 38 7E -> HDLC(payload, type=0x20, CRC16) 7E
     VEMS_MODE_A,                // MegaTune compatible 'A' -> 56 raw bytes
+    // OBD-II data source (obd.c)
+    VEMS_MODE_OBD_CAN,          // ISO 15765-4, 11 bit ids, baud = CAN bit rate
+    VEMS_MODE_OBD_KWP_FAST,     // ISO 14230-4 fast init
+    VEMS_MODE_OBD_KWP_5BAUD,    // ISO 14230-4 5 baud init
+    VEMS_MODE_OBD_ISO9141,      // ISO 9141-2
 } vems_mode_t;
 
 // engine status bits (byte 2), see firmware global.h
@@ -63,6 +68,10 @@ typedef struct {
     uint8_t status1;            // 47 bit7 ALS sw, 6 launch sw, 5 shiftcut, 4 igncut, 3 idle, 2 closed loop, 1 wheel err, 0 ALS active
     float boost_target_kpa;     // 48 * 4
     float boost_dc_pct;         // 49 * 100/255
+
+    // OBD-II only. With the OBD source every value the ECU does not support is NAN.
+    float load_pct;             // PID 04
+    float speed_kmh;            // PID 0D
 } vems_data_t;
 
 typedef struct {
@@ -80,6 +89,12 @@ typedef enum {
 } vems_state_t;
 
 esp_err_t vems_proto_start(const vems_link_t *link);
+
+/**
+ * OBD-II data source (CONFIG_VEMS_SOURCE_OBD): replaces vems_proto_start(), the getters below
+ * then report OBD data. Call after board_lcd_init() (MCP2515 shares the LCD init SPI pins).
+ */
+esp_err_t obd_start(void);
 
 vems_state_t vems_get_state(void);
 

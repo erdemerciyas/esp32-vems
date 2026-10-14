@@ -39,6 +39,8 @@ gerçek zamanlı motor verilerini okur, çözümler ve hem **480×480 yuvarlak e
 - 🔁 **Alternatif TTL/RS232 UART** taşıyıcı — tek `menuconfig` seçeneğiyle.
 - 📡 **İki protokol + otomatik algılama** — VemsTune'un kullandığı *TriggerFrame* (HDLC + Modbus CRC16)
   ve eski MegaTune `A` komutu. Önce TF denenir, olmazsa `A`'ya düşülür.
+- 🚗 **OBD-II kaynağı** — VEMS yerine herhangi bir aracın OBD soketi: CAN (ISO 15765-4) ve K-Line
+  (ISO 9141-2 / KWP2000) otomatik algılama, ECU'nun desteklediği PID'ler.
 - ✅ **CRC doğrulama, yeniden senkronizasyon ve istatistikler** (ok / timeout / crc / resync sayaçları).
 - 🧮 **VemsTune ini dosyasından birebir ölçekleme** — RPM, MAP, CLT, IAT, TPS, akü, lambda/AFR, avans,
   enjektör süresi, VE, dwell, IAC, boost, durum bayrakları…
@@ -178,6 +180,29 @@ idf.py -p /dev/ttyACM0 flash monitor
 | RPM maksimum | `8000` | 4000–12000 |
 | Kırmızı bölge / vites uyarısı | `6500` | 2000–12000 |
 | Parlaklık | `80 %` | 5–100 |
+
+### OBD-II kaynağı (VEMS yerine herhangi bir araç)
+
+**Veri kaynağı → OBD-II soketi** seçilince ekran, VEMS yerine aracın OBD soketindeki standart PID'leri gösterir.
+Açılışta protokol otomatik bulunur, kontak kapanıp açılınca yeniden aranır:
+
+1. **CAN** — ISO 15765-4, 11 bit (OBD pin 6 CAN-H / 14 CAN-L). Hız (500 / 250 kbit/s) önce *dinleme modunda*
+   aranır, araç hattına yanlış hızda bit basılmaz. Hat sessizse (gateway arkası) aktif sorgu denenir.
+2. **K-Line** — OBD pin 7, L9637D: önce ISO 14230-4 hızlı init, sonra 5 baud init (ISO 9141-2 / KWP2000).
+
+Cevap veren ilk ECU'nun desteklediği PID'ler (01 00/20/40) okunur ve sadece onlar sorgulanır.
+Desteklenmeyen değerler ekranda `--` görünür. Okunanlar: RPM, MAP, TPS, CLT, IAT, akü (PID 42), avans,
+yük, hız, geniş bant lambda (PID 24/34), hedef lambda (PID 44), kısa dönem yakıt düzeltmesi, kapalı çevrim.
+
+| Seçenek | Varsayılan | Açıklama |
+|---|---|---|
+| CAN | açık | Donanım: **CAN donanımı** menüsü, K-Line ile birlikte **HW-184 / MCP2515** önerilir (SD yuvası pinleri) |
+| K-Line | açık | UART1, TX GPIO44 → L9637D TX, RX GPIO43 ← L9637D RX (konnektör UART ucu) |
+
+- K-Line açıkken GPIO43/44 konsol hattından alınır: loglar kaybolur, "UART" Type-C portu boş olmalıdır.
+- Dahili TWAI seçilirse K-Line ile çakışmaması için varsayılan pinleri GPIO2 (TX) / GPIO1 (RX) olur.
+- 29 bit CAN (ISO 15765-4 29 bit) ve J1850 PWM/VPW desteklenmez.
+- Sokete aynı anda başka bir test cihazı (ELM327 vb.) takılmamalıdır.
 
 Kart seviyesindeki ayarlar (`sdkconfig.defaults`): 16 MB flash, 8 MB octal PSRAM @ 80 MHz, konsol UART0 @ 115200,
 240 MHz CPU, 1 kHz FreeRTOS tick, zayıf beslenen FTDI için uzatılmış USB enumerasyon süreleri ve hub desteği.

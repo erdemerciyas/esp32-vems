@@ -1,0 +1,609 @@
+<title>Universal OBD Bağlantısı</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: detection sequence strip, one wide bench-mat wiring figure (K-Line lane + CAN lane), then safety, checks, data and parts in a two-column grid */
+:root{
+  --bg:#f3f4f1; --fg:#1d2024; --muted:#5d636b; --line:#d5d8d2; --panel:#ffffff; --soft:#eceee9;
+  --accent:#b9770e; --ok:#2e8a4a; --warn:#b4472a;
+  --display:"Barlow Condensed","Arial Narrow",sans-serif;
+  --body:"Barlow",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#15171a; --fg:#e7e9ec; --muted:#9aa1ab; --line:#2c3036; --panel:#1d2024; --soft:#24282d; --accent:#e7a33a; --ok:#58c07a; --warn:#e2785c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#15171a; --fg:#e7e9ec; --muted:#9aa1ab; --line:#2c3036; --panel:#1d2024; --soft:#24282d; --accent:#e7a33a; --ok:#58c07a; --warn:#e2785c; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:400 15px/1.55 var(--body);margin:0}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 56px;display:grid;gap:28px}
+header{display:grid;gap:6px}
+.eyebrow{font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+h1{font:700 clamp(30px,5vw,46px)/1.05 var(--display);margin:0;text-wrap:balance;letter-spacing:.01em}
+.lede{color:var(--muted);max-width:70ch;margin:0}
+h2{font:600 22px/1.2 var(--display);margin:0 0 10px;letter-spacing:.02em;text-wrap:balance}
+h3{font:600 15px/1.2 var(--display);margin:14px 0 6px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.steps li{background:var(--panel);padding:14px 16px;display:grid;gap:4px;align-content:start;min-width:0}
+.steps .n{font:600 11px var(--mono);letter-spacing:.08em;color:var(--accent)}
+.steps b{font:700 20px/1.15 var(--display);letter-spacing:.01em}
+.steps span{color:var(--muted);font-size:14px}
+.steps code{color:var(--fg)}
+.figure{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#e4e7e1}
+.scroll{overflow-x:auto}
+.scroll svg{display:block;min-width:1080px;width:100%;height:auto}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;padding:12px 16px;background:var(--panel);border-top:1px solid var(--line);font-size:13.5px}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend i{width:26px;height:6px;border-radius:3px;display:inline-block;box-shadow:inset 0 0 0 1px rgba(0,0,0,.35)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:20px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px;min-width:0}
+.wide{grid-column:1/-1}
+.tbl{overflow-x:auto}
+ol,ul{margin:0;padding-left:20px;display:grid;gap:7px}
+li::marker{color:var(--muted);font-family:var(--mono);font-size:13px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 12px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+td.v{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.hl td{background:var(--soft)}
+.pill{display:inline-block;font:600 11px var(--mono);padding:2px 7px;border-radius:99px;border:1px solid currentColor;white-space:nowrap}
+.ok{color:var(--ok)} .warn{color:var(--warn)} .mut{color:var(--muted)}
+a{color:var(--accent);text-underline-offset:2px}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+.note{font-size:13.5px;color:var(--muted);margin:10px 0 0}
+p{margin:0 0 8px}
+code{font-family:var(--mono);font-size:.9em}
+/* SVG (bench mat keeps one light look in both themes) */
+.lbl{font:600 15px var(--display);fill:#23262b;letter-spacing:.02em}
+.sm{font:500 12px var(--body);fill:#4b5058}
+.pin{font:500 11.5px var(--mono);fill:#23262b}
+.silk{font:500 10px var(--mono);fill:#f2f5f8}
+.o{fill:none;stroke-width:8;stroke-linecap:round;stroke-linejoin:round}
+.c{fill:none;stroke-width:5.5;stroke-linecap:round;stroke-linejoin:round}
+.h{fill:none;stroke:#fff;stroke-opacity:.38;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
+.red.o{stroke:#6e0f0f}.red.c{stroke:#d62828}
+.yel.o{stroke:#7d5f00}.yel.c{stroke:#f2c230}
+.blk.o{stroke:#000}.blk.c{stroke:#2b2d30}
+.org.o{stroke:#7f3f00}.org.c{stroke:#f07f1a}
+.blu.o{stroke:#132f63}.blu.c{stroke:#2f6fd6}
+.grn.o{stroke:#124a22}.grn.c{stroke:#2e9e4f}
+.pur.o{stroke:#3d2366}.pur.c{stroke:#8e5bd1}
+.mag.o{stroke:#5e1238}.mag.c{stroke:#d6458f}
+.tea.o{stroke:#0b4547}.tea.c{stroke:#17a2a8}
+.brn.o{stroke:#3e2410}.brn.c{stroke:#9a6430}
+.gry.o{stroke:#3a3d42}.gry.c{stroke:#9aa0a8}
+.dot{fill:#1b1d20;stroke:#e4e7e1;stroke-width:2}
+.lead{stroke:#a9aeb5;stroke-width:3;stroke-linecap:round}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">OBD-II · CAN ISO 15765-4 · K-Line ISO 9141-2 / 14230-4 · sadece okuma</div>
+  <h1>Universal OBD Bağlantısı</h1>
+  <p class="lede">Tek kablo, her araç. ESP32 OBD soketine takılınca önce CAN'i dinler, CAN yoksa K-Line'ı dener ve bulduğu hat üzerinden canlı veriyi ekrana alır. ECU'ya yalnızca "şu anki değeri söyle" (servis 01) sorusu gider; silme, test ya da yazma komutu firmware'de yoktur.</p>
+</header>
+
+<ol class="steps" aria-label="Protokol arama sırası">
+  <li><span class="n">ADIM 1 · CAN DİNLE</span><b>500 → 250 kbit/s</b><span>Pin 6/14 dinleme modunda 300 ms izlenir. Hatta bit, ACK ya da hata çerçevesi basılmaz.</span></li>
+  <li><span class="n">ADIM 2 · CAN SOR</span><b><code>7DF · 01 00</code></b><span>Trafik görülen hızda desteklenen PID listesi istenir. Hat sessizse (gateway) 500 ve 250 denenir.</span></li>
+  <li><span class="n">ADIM 3 · K-LINE HIZLI</span><b>25 ms init + <code>81</code></b><span>CAN cevap vermezse pin 7'de ISO 14230-4 hızlı başlatma.</span></li>
+  <li><span class="n">ADIM 4 · K-LINE 5 BAUD</span><b>Adres <code>33</code></b><span>KW2 = 8F ise KWP2000, değilse ISO 9141-2. Bulunamazsa 2 s sonra baştan.</span></li>
+</ol>
+
+<section class="figure" aria-label="Bağlantı şeması">
+<div class="scroll">
+<svg viewBox="0 95 1560 1030" role="img" aria-labelledby="svgt">
+<title id="svgt">OBD-II fişten iki hat: pin 7 K-Line L9637D, 78L05 ve BSS138 üzerinden ESP32 UART başlığına; pin 6 ve 14 CAN hattı HW-184 MCP2515 modülü üzerinden ESP32 SD yuvası SPI pinlerine</title>
+<defs>
+  <pattern id="mat" width="20" height="20" patternUnits="userSpaceOnUse">
+    <rect width="20" height="20" fill="#e4e7e1"/><path d="M20 0H0V20" fill="none" stroke="#d3d7cf" stroke-width="1"/>
+  </pattern>
+  <linearGradient id="gBlk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b3d40"/><stop offset="1" stop-color="#0f1011"/></linearGradient>
+  <linearGradient id="gPlug" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#34363a"/><stop offset=".5" stop-color="#1b1c1e"/><stop offset="1" stop-color="#0b0b0c"/></linearGradient>
+  <linearGradient id="gCyl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0d0d0e"/><stop offset=".45" stop-color="#4a4c50"/><stop offset="1" stop-color="#0d0d0e"/></linearGradient>
+  <linearGradient id="gRes" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#b39457"/><stop offset=".45" stop-color="#efdcb0"/><stop offset="1" stop-color="#b39457"/></linearGradient>
+  <linearGradient id="gPcb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a6cb5"/><stop offset="1" stop-color="#1a4a85"/></linearGradient>
+  <linearGradient id="gGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6da86"/><stop offset="1" stop-color="#b08226"/></linearGradient>
+  <linearGradient id="gMet" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8d9299"/><stop offset=".5" stop-color="#e3e6ea"/><stop offset="1" stop-color="#8d9299"/></linearGradient>
+  <linearGradient id="gTerm" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1c6b3c"/><stop offset=".5" stop-color="#2f9a5a"/><stop offset="1" stop-color="#1c6b3c"/></linearGradient>
+  <radialGradient id="gCap" cx=".35" cy=".35" r=".7"><stop offset="0" stop-color="#f7c86a"/><stop offset="1" stop-color="#c9781f"/></radialGradient>
+  <radialGradient id="gScr" cx=".5" cy=".4" r=".7"><stop offset="0" stop-color="#1a2230"/><stop offset="1" stop-color="#05070a"/></radialGradient>
+
+  <!-- K-Line lane (same circuit as the Kalos board) -->
+  <path id="wGnd4" d="M205 440H240V330H600V430H640"/>
+  <path id="wK" d="M205 480H640"/>
+  <path id="w12" d="M205 505H262V760H800V740"/>
+  <path id="wGnd5" d="M205 528H246V830H960V542.5H1000"/>
+  <path id="wVS" d="M560 760V580H640"/>
+  <path id="wRes" d="M470 760V700M470 560V480"/>
+  <path id="wResA" d="M470 700H452V560H470"/>
+  <path id="wResB" d="M470 700H488V560H470"/>
+  <path id="wGnd78" d="M820 735V830"/>
+  <path id="w5v" d="M840 735V750H880V505"/>
+  <path id="wVcc" d="M800 480H860V505H1000"/>
+  <path id="wTx" d="M800 430H1000"/>
+  <path id="wRx" d="M800 580H872a8 8 0 0 1 16 0H930V513a8 8 0 0 1 0 -16V467.5H1000"/>
+  <path id="wL1" d="M1110 430H1200V470H1300"/>
+  <path id="wL2" d="M1110 467.5H1170V500H1300"/>
+  <path id="wL3v" d="M1110 505H1160V530H1300"/>
+  <path id="wLg" d="M1110 542.5H1150V560H1300"/>
+  <!-- CAN lane -->
+  <path id="wCh" d="M205 548H230V935H630"/>
+  <path id="wCl" d="M205 566H214V975H630"/>
+  <path id="wSck" d="M840 935H1290"/>
+  <path id="wSi" d="M840 955H1290"/>
+  <path id="wSo" d="M840 975H1290"/>
+  <path id="wCs" d="M840 995H1290"/>
+  <path id="wCg" d="M840 1015H1290"/>
+  <path id="wC3" d="M840 1035H1290"/>
+  <path id="wC5" d="M735 999V1075H1290"/></defs>
+
+<rect x="0" y="95" width="1560" height="1030" fill="url(#mat)"/>
+
+<!-- ===== Vehicle socket inset ===== -->
+<g>
+  <rect x="22" y="108" width="196" height="172" rx="8" fill="#f8f8f5" stroke="#c4c8c0"/>
+  <text x="120" y="130" text-anchor="middle" class="sm" style="font-weight:600;fill:#23262b">Araçtaki OBD soketi · önden</text>
+  <path d="M45 145H195L182 215H58Z" fill="url(#gPlug)" stroke="#000"/>
+  <g fill="#5a5d62">
+    <circle cx="62" cy="165" r="5"/><circle cx="79.5" cy="165" r="5"/><circle cx="97" cy="165" r="5"/>
+    <circle cx="184.5" cy="165" r="5"/>
+    <circle cx="68" cy="196" r="5"/><circle cx="84" cy="196" r="5"/><circle cx="100" cy="196" r="5"/><circle cx="116" cy="196" r="5"/>
+    <circle cx="132" cy="196" r="5"/><circle cx="164" cy="196" r="5"/>
+  </g>
+  <circle cx="114.5" cy="165" r="5.5" fill="#eceeea" stroke="#000"/>
+  <circle cx="132" cy="165" r="5.5" fill="#eceeea" stroke="#000"/>
+  <circle cx="149.5" cy="165" r="5.5" fill="#d6458f" stroke="#000"/>
+  <circle cx="167" cy="165" r="5.5" fill="#f2c230" stroke="#000"/>
+  <circle cx="148" cy="196" r="5.5" fill="#17a2a8" stroke="#000"/>
+  <circle cx="180" cy="196" r="5.5" fill="#d62828" stroke="#000"/>
+  <g class="pin" style="font-size:9px;fill:#f8f8f5" text-anchor="middle">
+    <text x="62" y="158">1</text><text x="114.5" y="156">4</text><text x="132" y="156">5</text><text x="149.5" y="156">6</text><text x="167" y="156">7</text>
+    <text x="68" y="210">9</text><text x="148" y="210">14</text><text x="180" y="210">16</text>
+  </g>
+  <text x="34" y="238" class="pin" style="font-size:11px"><tspan fill="#5d636b">4·5</tspan> GND</text>
+  <text x="100" y="238" class="pin" style="font-size:11px"><tspan fill="#a47e00">7</tspan> K</text>
+  <text x="140" y="238" class="pin" style="font-size:11px"><tspan fill="#c22">16</tspan> +12V</text>
+  <text x="34" y="258" class="pin" style="font-size:11px"><tspan fill="#a8306c">6</tspan> CAN-H</text>
+  <text x="120" y="258" class="pin" style="font-size:11px"><tspan fill="#0f7a7e">14</tspan> CAN-L</text>
+</g>
+
+<!-- ===== Wires (outline, core, highlight) ===== -->
+<g>
+  <use href="#wGnd4" class="blk o"/><use href="#wGnd4" class="blk c"/><use href="#wGnd4" class="h"/>
+  <use href="#wGnd5" class="blk o"/><use href="#wGnd5" class="blk c"/><use href="#wGnd5" class="h"/>
+  <use href="#wGnd78" class="blk o"/><use href="#wGnd78" class="blk c"/><use href="#wGnd78" class="h"/>
+  <use href="#w12" class="red o"/><use href="#w12" class="red c"/><use href="#w12" class="h"/>
+  <use href="#wVS" class="red o"/><use href="#wVS" class="red c"/><use href="#wVS" class="h"/>
+  <use href="#wRes" class="red o"/><use href="#wRes" class="red c"/><use href="#wRes" class="h"/>
+  <use href="#wResA" class="red o"/><use href="#wResA" class="red c"/><use href="#wResA" class="h"/>
+  <use href="#wResB" class="red o"/><use href="#wResB" class="red c"/><use href="#wResB" class="h"/>
+  <use href="#wK" class="yel o"/><use href="#wK" class="yel c"/><use href="#wK" class="h"/>
+  <use href="#w5v" class="org o"/><use href="#w5v" class="org c"/><use href="#w5v" class="h"/>
+  <use href="#wVcc" class="org o"/><use href="#wVcc" class="org c"/><use href="#wVcc" class="h"/>
+  <use href="#wTx" class="blu o"/><use href="#wTx" class="blu c"/><use href="#wTx" class="h"/>
+  <use href="#wRx" class="grn o"/><use href="#wRx" class="grn c"/><use href="#wRx" class="h"/>
+  <use href="#wL1" class="blu o"/><use href="#wL1" class="blu c"/><use href="#wL1" class="h"/>
+  <use href="#wL3v" class="pur o"/><use href="#wL3v" class="pur c"/><use href="#wL3v" class="h"/>
+  <use href="#wLg" class="blk o"/><use href="#wLg" class="blk c"/><use href="#wLg" class="h"/>
+  <use href="#wL2" class="grn o"/><use href="#wL2" class="grn c"/><use href="#wL2" class="h"/>
+  <use href="#wCh" class="mag o"/><use href="#wCh" class="mag c"/><use href="#wCh" class="h"/>
+  <use href="#wCl" class="tea o"/><use href="#wCl" class="tea c"/><use href="#wCl" class="h"/>
+  <use href="#wSck" class="brn o"/><use href="#wSck" class="brn c"/><use href="#wSck" class="h"/>
+  <use href="#wSi" class="blu o"/><use href="#wSi" class="blu c"/><use href="#wSi" class="h"/>
+  <use href="#wSo" class="grn o"/><use href="#wSo" class="grn c"/><use href="#wSo" class="h"/>
+  <use href="#wCs" class="gry o"/><use href="#wCs" class="gry c"/><use href="#wCs" class="h"/>
+  <use href="#wCg" class="blk o"/><use href="#wCg" class="blk c"/><use href="#wCg" class="h"/>
+  <use href="#wC3" class="pur o"/><use href="#wC3" class="pur c"/><use href="#wC3" class="h"/>
+  <use href="#wC5" class="org o"/><use href="#wC5" class="org c"/><use href="#wC5" class="h"/></g>
+
+<!-- ===== OBD-II male plug ===== -->
+<g>
+  <rect x="24" y="432" width="40" height="136" rx="4" fill="#161718" stroke="#000"/>
+  <rect x="28" y="440" width="8" height="120" rx="2" fill="#3a3c40"/>
+  <rect x="58" y="404" width="114" height="192" rx="16" fill="url(#gPlug)" stroke="#000"/>
+  <rect x="70" y="396" width="44" height="12" rx="3" fill="#55585e" stroke="#000"/>
+  <g stroke="#3e4146" stroke-width="3" stroke-linecap="round">
+    <path d="M122 430V570"/><path d="M134 430V570"/><path d="M146 430V570"/><path d="M158 430V570"/>
+  </g>
+  <path d="M170 420L208 432V570L170 582Z" fill="#141516" stroke="#000"/>
+  <text x="100" y="625" text-anchor="middle" class="lbl">OBD-II erkek fiş</text>
+  <text x="100" y="643" text-anchor="middle" class="sm">kablolu, 16 pin</text>
+  <text x="100" y="659" text-anchor="middle" class="sm">6 tel: 4 · 5 · 6 · 7 · 14 · 16</text>
+</g>
+
+<!-- ===== 1N4005 diode ===== -->
+<g>
+  <path d="M290 760H320M380 760H410" class="lead"/>
+  <rect x="318" y="750" width="64" height="20" rx="9" fill="url(#gBlk)" stroke="#000"/>
+  <rect x="364" y="750" width="9" height="20" fill="#c9ccd1"/>
+  <text x="350" y="741" text-anchor="middle" class="lbl">1N4005</text>
+  <text x="350" y="792" text-anchor="middle" class="sm">gri bant devreye bakar</text>
+</g>
+
+<!-- ===== 2 x 1k resistors in parallel (500 ohm K pull-up) ===== -->
+<g>
+  <rect x="444" y="600" width="16" height="60" rx="7" fill="url(#gRes)" stroke="#7b6438"/>
+  <rect x="444" y="610" width="16" height="5" fill="#6b3d1f"/>
+  <rect x="444" y="620" width="16" height="5" fill="#111"/>
+  <rect x="444" y="630" width="16" height="5" fill="#c62828"/>
+  <rect x="444" y="646" width="16" height="4" fill="#c8a03a"/>
+  <rect x="480" y="600" width="16" height="60" rx="7" fill="url(#gRes)" stroke="#7b6438"/>
+  <rect x="480" y="610" width="16" height="5" fill="#6b3d1f"/>
+  <rect x="480" y="620" width="16" height="5" fill="#111"/>
+  <rect x="480" y="630" width="16" height="5" fill="#c62828"/>
+  <rect x="480" y="646" width="16" height="4" fill="#c8a03a"/>
+  <text x="504" y="616" class="lbl">2 × 1 kΩ</text>
+  <text x="504" y="633" class="sm">paralel = 500 Ω</text>
+  <text x="504" y="648" class="sm">K pull-up</text>
+</g>
+
+<!-- ===== C1 100nF on +12V ===== -->
+<g>
+  <path d="M520 760V782M520 808V830" class="lead" style="stroke-width:2.5"/>
+  <ellipse cx="520" cy="795" rx="13" ry="14" fill="url(#gCap)" stroke="#8a4f12"/>
+  <text x="520" y="799" text-anchor="middle" class="pin" style="font-size:8px">104</text>
+  <text x="538" y="800" class="sm">100 nF</text>
+</g>
+
+<!-- ===== L9637D on SO8->DIP adapter (rotated 180°) ===== -->
+<g>
+  <rect x="640" y="400" width="160" height="210" rx="6" fill="url(#gPcb)" stroke="#0f2f57"/>
+  <rect x="646" y="406" width="148" height="198" rx="4" fill="none" stroke="#e8eef6" stroke-opacity=".35"/>
+  <g fill="none" stroke="#e2bd5a" stroke-opacity=".8" stroke-width="2">
+    <path d="M645 430H678V481H690"/><path d="M645 480H670V497H690"/>
+    <path d="M645 530H670V513H690"/><path d="M645 580H678V529H690"/>
+    <path d="M795 430H762V481H750"/><path d="M795 480H770V497H750"/>
+    <path d="M795 530H770V513H750"/><path d="M795 580H762V529H750"/>
+  </g>
+  <g fill="#c4c8ce">
+    <rect x="684" y="478" width="8" height="6"/><rect x="684" y="494" width="8" height="6"/>
+    <rect x="684" y="510" width="8" height="6"/><rect x="684" y="526" width="8" height="6"/>
+    <rect x="748" y="478" width="8" height="6"/><rect x="748" y="494" width="8" height="6"/>
+    <rect x="748" y="510" width="8" height="6"/><rect x="748" y="526" width="8" height="6"/>
+  </g>
+  <rect x="690" y="470" width="60" height="70" rx="3" fill="url(#gBlk)" stroke="#000"/>
+  <circle cx="742" cy="532" r="3" fill="#6a6d72"/>
+  <text transform="rotate(180 720 505)" x="720" y="503" text-anchor="middle" class="pin" style="font-size:10px;fill:#c9ccd1">L9637D</text>
+  <text transform="rotate(180 720 505)" x="720" y="517" text-anchor="middle" class="pin" style="font-size:8px;fill:#8d9097">ST</text>
+  <g fill="url(#gGold)" stroke="#7a5a12">
+    <rect x="634" y="424" width="12" height="12" rx="2"/><rect x="634" y="474" width="12" height="12" rx="2"/>
+    <rect x="634" y="524" width="12" height="12" rx="2"/><rect x="634" y="574" width="12" height="12" rx="2"/>
+    <rect x="794" y="424" width="12" height="12" rx="2"/><rect x="794" y="474" width="12" height="12" rx="2"/>
+    <rect x="794" y="524" width="12" height="12" rx="2"/><rect x="794" y="574" width="12" height="12" rx="2"/>
+  </g>
+  <g class="pin" text-anchor="end">
+    <text x="628" y="421">5·GND</text><text x="628" y="471">6·K</text>
+    <text x="628" y="521" style="fill:#80858d">7·LI boş</text><text x="628" y="571">8·VS</text>
+  </g>
+  <g class="pin">
+    <text x="810" y="421">4·TX</text><text x="810" y="471">3·VCC</text>
+    <text x="810" y="521" style="fill:#80858d">2·LO boş</text><text x="810" y="571">1·RX</text>
+  </g>
+  <text x="720" y="390" text-anchor="middle" class="lbl">L9637D · K-Line alıcı-verici</text>
+  <text x="720" y="628" text-anchor="middle" class="sm">180° döndürülmüş çizildi:</text>
+  <text x="720" y="644" text-anchor="middle" class="sm">pin-1 noktası sağ altta</text>
+</g>
+
+<!-- ===== 78L05 (TO-92, rear view) ===== -->
+<g>
+  <path d="M800 712V735M820 712V735M840 712V735" class="lead"/>
+  <rect x="790" y="662" width="60" height="52" rx="7" fill="url(#gCyl)" stroke="#000"/>
+  <g class="silk" text-anchor="middle" style="font-size:8.5px">
+    <text x="801" y="706">IN</text><text x="820" y="706">GND</text><text x="840" y="706">OUT</text>
+  </g>
+  <text x="780" y="684" text-anchor="end" class="lbl">78L05</text>
+  <text x="780" y="700" text-anchor="end" class="sm">arkadan görünüm</text>
+  <text x="780" y="715" text-anchor="end" class="sm">(yazılı düz yüz arkada)</text>
+</g>
+
+<!-- ===== C2 100nF on 5V ===== -->
+<g>
+  <path d="M880 680H906M934 680H960" class="lead" style="stroke-width:2.5"/>
+  <ellipse cx="920" cy="680" rx="14" ry="13" fill="url(#gCap)" stroke="#8a4f12"/>
+  <text x="920" y="684" text-anchor="middle" class="pin" style="font-size:8px">104</text>
+  <text x="920" y="711" text-anchor="middle" class="sm">100 nF</text>
+</g>
+
+<!-- ===== BSS138 level shifter module ===== -->
+<g>
+  <rect x="1000" y="404" width="110" height="240" rx="5" fill="url(#gPcb)" stroke="#0f2f57"/>
+  <g fill="#111"><rect x="1047" y="420" width="16" height="10" rx="1"/><rect x="1047" y="458" width="16" height="10" rx="1"/>
+    <rect x="1047" y="571" width="16" height="10" rx="1"/><rect x="1047" y="608" width="16" height="10" rx="1"/></g>
+  <g fill="#d9c69a"><rect x="1030" y="438" width="10" height="5"/><rect x="1070" y="438" width="10" height="5"/>
+    <rect x="1030" y="476" width="10" height="5"/><rect x="1070" y="476" width="10" height="5"/>
+    <rect x="1030" y="589" width="10" height="5"/><rect x="1070" y="589" width="10" height="5"/>
+    <rect x="1030" y="626" width="10" height="5"/><rect x="1070" y="626" width="10" height="5"/></g>
+  <g class="silk">
+    <text x="1012" y="434">HV1</text><text x="1012" y="471">HV2</text><text x="1012" y="509">HV</text>
+    <text x="1012" y="546">GND</text><text x="1012" y="584">HV3</text><text x="1012" y="621">HV4</text>
+  </g>
+  <g class="silk" text-anchor="end">
+    <text x="1098" y="434">LV1</text><text x="1098" y="471">LV2</text><text x="1098" y="509">LV</text>
+    <text x="1098" y="546">GND</text><text x="1098" y="584">LV3</text><text x="1098" y="621">LV4</text>
+  </g>
+  <g fill="url(#gGold)" stroke="#7a5a12">
+    <rect x="994" y="424" width="12" height="12" rx="2"/><rect x="994" y="461.5" width="12" height="12" rx="2"/>
+    <rect x="994" y="499" width="12" height="12" rx="2"/><rect x="994" y="536.5" width="12" height="12" rx="2"/>
+    <rect x="994" y="574" width="12" height="12" rx="2"/><rect x="994" y="611.5" width="12" height="12" rx="2"/>
+    <rect x="1104" y="424" width="12" height="12" rx="2"/><rect x="1104" y="461.5" width="12" height="12" rx="2"/>
+    <rect x="1104" y="499" width="12" height="12" rx="2"/><rect x="1104" y="536.5" width="12" height="12" rx="2"/>
+    <rect x="1104" y="574" width="12" height="12" rx="2"/><rect x="1104" y="611.5" width="12" height="12" rx="2"/>
+  </g>
+  <text x="1055" y="390" text-anchor="middle" class="lbl">BSS138 seviye dönüştürücü</text>
+  <text x="1000" y="666" class="sm">5V tarafı</text>
+  <text x="1110" y="666" text-anchor="end" class="sm">3.3V tarafı</text>
+</g>
+
+<!-- ===== ESP32 UART header labels (K-Line) ===== -->
+<g class="pin">
+  <text x="1210" y="463">GPIO44 · RXD</text>
+  <text x="1210" y="493">GPIO43 · TXD</text>
+  <text x="1210" y="523">3V3</text>
+  <text x="1210" y="553">GND</text>
+</g>
+
+<!-- ===== HW-184 CAN module (MCP2515 + TJA1050) ===== -->
+<g>
+  <rect x="640" y="890" width="200" height="160" rx="6" fill="url(#gPcb)" stroke="#0f2f57"/>
+  <rect x="646" y="896" width="188" height="148" rx="4" fill="none" stroke="#e8eef6" stroke-opacity=".35"/>
+  <!-- screw terminal -->
+  <rect x="624" y="912" width="40" height="86" rx="3" fill="url(#gTerm)" stroke="#0e3b20"/>
+  <circle cx="640" cy="935" r="8" fill="url(#gMet)" stroke="#555"/><path d="M634 935H646" stroke="#555" stroke-width="2"/>
+  <circle cx="640" cy="975" r="8" fill="url(#gMet)" stroke="#555"/><path d="M634 975H646" stroke="#555" stroke-width="2"/>
+  <g class="silk"><text x="670" y="939">H</text><text x="670" y="979">L</text></g>
+  <!-- crystal, controller, transceiver -->
+  <rect x="686" y="902" width="36" height="16" rx="8" fill="url(#gMet)" stroke="#666"/>
+  <text x="704" y="913" text-anchor="middle" class="pin" style="font-size:7.5px">8.000</text>
+  <rect x="730" y="902" width="60" height="44" rx="2" fill="url(#gBlk)" stroke="#000"/>
+  <text x="760" y="928" text-anchor="middle" class="pin" style="font-size:9.5px;fill:#c9ccd1">MCP2515</text>
+  <rect x="700" y="965" width="46" height="34" rx="2" fill="url(#gBlk)" stroke="#000"/>
+  <text x="723" y="986" text-anchor="middle" class="pin" style="font-size:8.5px;fill:#c9ccd1">TJA1050</text>
+  <!-- J1 termination jumper, removed -->
+  <rect x="676" y="1016" width="22" height="14" rx="2" fill="#16181b" stroke="#000"/>
+  <path d="M672 1012L702 1034M702 1012L672 1034" stroke="#e23b3b" stroke-width="3" stroke-linecap="round"/>
+  <text x="708" y="1028" class="silk">J1</text>
+  <!-- header -->
+  <g fill="url(#gGold)" stroke="#7a5a12">
+    <rect x="828" y="909" width="12" height="12" rx="2"/><rect x="828" y="929" width="12" height="12" rx="2"/>
+    <rect x="828" y="949" width="12" height="12" rx="2"/><rect x="828" y="969" width="12" height="12" rx="2"/>
+    <rect x="828" y="989" width="12" height="12" rx="2"/><rect x="828" y="1009" width="12" height="12" rx="2"/>
+    <rect x="828" y="1029" width="12" height="12" rx="2"/>
+  </g>
+  <g class="silk" text-anchor="end">
+    <text x="822" y="919" style="fill:#9fb3cc">INT</text><text x="822" y="939">SCK</text><text x="822" y="959">SI</text>
+    <text x="822" y="979">SO</text><text x="822" y="999">CS</text><text x="822" y="1019">GND</text><text x="822" y="1039">VCC</text>
+  </g>
+  <text x="740" y="878" text-anchor="middle" class="lbl">HW-184 · MCP2515 + TJA1050</text>
+  <text x="640" y="1098" class="sm">J1 (120 Ω sonlandırma) sökülür: araç hattı zaten sonlandırılmış</text>
+  <text x="640" y="1114" class="sm">VCC ayrımı: modül VCC 3.3V, TJA1050 pin 3 kaldırılıp 5V'a</text>
+</g>
+
+<!-- ===== ESP32 SPI labels (CAN) ===== -->
+<g>
+  <text x="1300" y="902" class="sm" style="font-weight:600;fill:#23262b">ESP32 · SD yuvası + 12 pin konnektör</text>
+  <g class="pin">
+    <text x="1300" y="939">GPIO2 · SD CLK</text>
+    <text x="1300" y="959">GPIO1 · SD CMD</text>
+    <text x="1300" y="979">GPIO42 · SD DAT0</text>
+    <text x="1300" y="999">GPIO0 · IO0</text>
+    <text x="1300" y="1019">GND</text>
+    <text x="1300" y="1039">3V3</text>
+    <text x="1300" y="1079">5V · VBus</text>
+  </g>
+</g>
+
+<!-- ===== ESP32-S3-Touch-LCD-2.1 ===== -->
+<g>
+  <circle cx="1430" cy="515" r="113" fill="url(#gPlug)" stroke="#000" stroke-width="2"/>
+  <circle cx="1430" cy="515" r="97" fill="url(#gScr)" stroke="#2a2d33" stroke-width="2"/>
+  <path d="M1376.3 568.7A76 76 0 1 1 1483.7 568.7" fill="none" stroke="#252b35" stroke-width="10" stroke-linecap="round"/>
+  <path d="M1376.3 568.7A76 76 0 0 1 1464.5 447.3" fill="none" stroke="#f0a020" stroke-width="10" stroke-linecap="round"/>
+  <text x="1430" y="482" text-anchor="middle" style="font:600 11px var(--mono);fill:#7d8592;letter-spacing:.1em">OBD CAN 500K</text>
+  <text x="1430" y="527" text-anchor="middle" style="font:700 38px var(--display);fill:#f4f6f8">2450</text>
+  <text x="1430" y="545" text-anchor="middle" style="font:500 11px var(--mono);fill:#7d8592">RPM</text>
+  <text x="1430" y="584" text-anchor="middle" style="font:600 14px var(--display);fill:#d7dbe0">88 °C</text>
+  <circle cx="1488" cy="470" r="4" fill="#3ad16a"/>
+  <rect x="1296" y="455" width="26" height="120" rx="3" fill="#f2f1ec" stroke="#a9aba4"/>
+  <g fill="url(#gGold)"><rect x="1297" y="466" width="8" height="8"/><rect x="1297" y="496" width="8" height="8"/><rect x="1297" y="526" width="8" height="8"/><rect x="1297" y="556" width="8" height="8"/></g>
+  <rect x="1413" y="622" width="34" height="11" rx="5" fill="#9ca1a8" stroke="#555"/>
+  <text x="1318" y="640" text-anchor="end" class="lbl">ESP32-S3-Touch-LCD-2.1</text>
+  <text x="1318" y="657" text-anchor="end" class="sm">UART başlığı: GND · 3V3 · TXD · RXD</text>
+</g>
+
+<!-- ===== USB cable + car charger ===== -->
+<g>
+  <path d="M1430 633V705" fill="none" stroke="#1e1f22" stroke-width="9" stroke-linecap="round"/>
+  <path d="M1430 633V705" fill="none" stroke="#5b5f66" stroke-width="5" stroke-linecap="round"/>
+  <rect x="1420" y="696" width="20" height="16" rx="2" fill="#2a2c30" stroke="#000"/>
+  <rect x="1398" y="710" width="64" height="92" rx="12" fill="url(#gPlug)" stroke="#000"/>
+  <rect x="1416" y="722" width="28" height="9" rx="2" fill="#0b0b0c" stroke="#666"/>
+  <rect x="1398" y="772" width="64" height="5" fill="#c0392b"/>
+  <rect x="1414" y="802" width="32" height="20" rx="3" fill="#2a2c30" stroke="#000"/>
+  <rect x="1424" y="822" width="12" height="12" rx="2" fill="#c4c8ce" stroke="#777"/>
+  <text x="1388" y="750" text-anchor="end" class="lbl">Araç USB şarj aleti</text>
+  <text x="1388" y="767" text-anchor="end" class="sm">çakmaklıktan 12V → 5V</text>
+  <text x="1388" y="783" text-anchor="end" class="sm">USB-C ile ESP32'yi besler</text>
+</g>
+
+<!-- ===== Wire labels ===== -->
+<g>
+  <text x="300" y="320" class="pin">Pin 4 · Şasi GND</text>
+  <text x="300" y="470" class="pin" style="fill:#7d5f00">Pin 7 · K-Line</text>
+  <text x="272" y="600" class="pin" style="fill:#a31b1b">Pin 16 · +12V</text>
+  <text x="272" y="615" class="sm">sürekli akü</text>
+  <text x="300" y="852" class="pin">Pin 5 · Sinyal GND</text>
+  <text x="300" y="925" class="pin" style="fill:#a8306c">Pin 6 · CAN-H</text>
+  <text x="300" y="965" class="pin" style="fill:#0f7a7e">Pin 14 · CAN-L</text>
+  <text x="430" y="996" class="sm">bükümlü çift, kısa tut</text>
+  <text x="880" y="422" class="pin" style="fill:#1d4a9a">TX</text>
+  <text x="900" y="572" class="pin" style="fill:#1b6a36">RX</text>
+  <text x="888" y="742" class="pin" style="fill:#a65400">5V</text>
+  <text x="1000" y="927" class="pin" style="fill:#6b4220">SCK</text>
+  <text x="1040" y="947" class="pin" style="fill:#1d4a9a">MOSI</text>
+  <text x="1080" y="967" class="pin" style="fill:#1b6a36">MISO</text>
+  <text x="1120" y="987" class="pin" style="fill:#4b5058">CS</text>
+</g>
+
+<!-- ===== Junctions ===== -->
+<g class="dot">
+  <circle cx="470" cy="480" r="5.5"/><circle cx="470" cy="760" r="5.5"/>
+  <circle cx="470" cy="700" r="5.5"/><circle cx="470" cy="560" r="5.5"/>
+  <circle cx="520" cy="760" r="5.5"/><circle cx="520" cy="830" r="5.5"/>
+  <circle cx="560" cy="760" r="5.5"/><circle cx="820" cy="830" r="5.5"/>
+  <circle cx="880" cy="505" r="5.5"/><circle cx="880" cy="680" r="5.5"/><circle cx="960" cy="680" r="5.5"/>
+</g>
+</svg>
+</div>
+<div class="legend">
+  <span><i style="background:#d62828"></i>+12V (pin 16)</span>
+  <span><i style="background:#f2c230"></i>K-Line (pin 7)</span>
+  <span><i style="background:#d6458f"></i>CAN-H (pin 6)</span>
+  <span><i style="background:#17a2a8"></i>CAN-L (pin 14)</span>
+  <span><i style="background:#f07f1a"></i>5V</span>
+  <span><i style="background:#8e5bd1"></i>3.3V (ESP32)</span>
+  <span><i style="background:#2f6fd6"></i>ESP → modül (TX, MOSI)</span>
+  <span><i style="background:#2e9e4f"></i>modül → ESP (RX, MISO)</span>
+  <span><i style="background:#9a6430"></i>SPI saat</span>
+  <span><i style="background:#9aa0a8"></i>SPI CS</span>
+  <span><i style="background:#2b2d30"></i>GND</span></div>
+</section>
+
+<div class="grid">
+  <section class="card">
+    <h2>Sadece okuma: ECU'ya ne gider</h2>
+    <p>OBD'de ECU kendiliğinden veri yaymaz, soru sorulunca cevap verir. Bu yüzden soru gider, ama yalnızca okuma sorusu.</p>
+    <table>
+      <thead><tr><th>Hat</th><th>Gönderilen</th><th>Anlamı</th></tr></thead>
+      <tbody>
+        <tr><td>CAN</td><td class="v">7E0 · 02 01 PID</td><td>"PID değerini söyle"</td></tr>
+        <tr><td>CAN</td><td class="v">7DF · 02 01 00</td><td>Bir kez: desteklenen PID listesi</td></tr>
+        <tr><td>K-Line</td><td class="v">C2 33 F1 01 PID</td><td>Aynı soru, KWP2000 çerçevesi</td></tr>
+        <tr><td>K-Line</td><td class="v">68 6A F1 01 PID</td><td>Aynı soru, ISO 9141-2 çerçevesi</td></tr>
+        <tr><td>K-Line</td><td class="v">25 ms darbe · 81</td><td>Oturum açma (hızlı init)</td></tr>
+        <tr><td>K-Line</td><td class="v">33 @ 5 baud · ~KW2</td><td>Oturum açma (yavaş init)</td></tr>
+      </tbody>
+    </table>
+    <h3>Firmware'de hiç olmayanlar</h3>
+    <ul>
+      <li>Arıza kodu silme (servis 04), aktüatör ve sistem testleri (08), kodlama, programlama, yazma.</li>
+      <li>Firmware 01 ve 81 dışındaki her servis kodunu hatta çıkmadan reddeder (<code>obd_tx_allowed</code>).</li>
+      <li>CAN hızı dinleme modunda bulunur: yanlış hızda tek bit bile basılmaz, ACK verilmez.</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>Araçta hangi hat var?</h2>
+    <p>Sökete takmadan önce multimetreyle bakılabilir. Firmware zaten otomatik seçer; bu ölçüm sadece kabloyu doğrulamak için.</p>
+    <table>
+      <thead><tr><th>Ölçüm</th><th>Beklenen</th><th>Sonuç</th></tr></thead>
+      <tbody>
+        <tr class="hl"><td>Pin 6 – pin 14, direnç, kontak kapalı</td><td class="v">≈ 60 Ω</td><td><span class="pill ok">CAN var</span></td></tr>
+        <tr><td>Pin 6 – pin 5, kontak açık</td><td class="v">2.5–3.5 V</td><td>CAN-H</td></tr>
+        <tr><td>Pin 14 – pin 5, kontak açık</td><td class="v">1.5–2.5 V</td><td>CAN-L</td></tr>
+        <tr class="hl"><td>Pin 7 – pin 5, kontak açık</td><td class="v">11–13 V</td><td><span class="pill ok">K-Line var</span></td></tr>
+        <tr><td>Pin 7'de metal kontak yok / 0 V</td><td class="v">—</td><td><span class="pill mut">K-Line yok</span></td></tr>
+        <tr><td>Pin 16 – pin 4</td><td class="v">11.5–14 V</td><td>Besleme</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Bazı araçlarda ikisi de vardır (2004–2008 geçiş dönemi). O zaman CAN önce denendiği için CAN kullanılır.</p>
+  </section>
+
+  <section class="card">
+    <h2>Montaj sırası</h2>
+    <ol>
+      <li><b>K-Line kartı:</b> Kalos planındaki L9637D kartının aynısı (L9637D, 78L05, 1N4005, 2 × 1 kΩ, 2 × 100 nF, BSS138).</li>
+      <li><b>HW-184 J1:</b> 120 Ω sonlandırma jumper'ını sök. Araç hattı iki uçtan zaten sonlandırılmış; üçüncü direnç hattı bozar.</li>
+      <li><b>HW-184 VCC ayrımı:</b> TJA1050 pin 3'ü (VCC) pedden kaldır, 5V'a bağla. Modülün VCC ucu ESP32 3V3'üne gider; MCP2515 3.3V çalışır, SO çıkışı ESP32'ye güvenli olur.</li>
+      <li>OBD kablosunda 4, 5, 6, 7, 14 ve 16 numaralı telleri multimetreyle bul. Kablo renklerine güvenme; ucuz kablolarda 6 ve 14 bağlı olmayabilir.</li>
+      <li>Pin 6 → HW-184 H, pin 14 → L. İki teli birbirine bükerek kısa tut.</li>
+      <li>SPI: SCK → GPIO2, SI → GPIO1, SO → GPIO42 (SD yuvası, microSD breakout ile), CS → IO0, GND, VCC → 3V3, TJA1050 → 5V VBus.</li>
+      <li>ESP32'yi bağlamadan aşağıdaki gerilimleri ölç, sonra kartı USB şarj aletinden besle.</li>
+    </ol>
+  </section>
+
+  <section class="card">
+    <h2>ESP32'yi bağlamadan önce ölç</h2>
+    <table>
+      <thead><tr><th>Nokta</th><th>Beklenen</th><th></th></tr></thead>
+      <tbody>
+        <tr><td>L9637D pin 8 (VS)</td><td class="v">11.5–14 V</td><td><span class="pill ok">kontak açık</span></td></tr>
+        <tr><td>L9637D pin 3 (VCC)</td><td class="v">4.9–5.1 V</td><td></td></tr>
+        <tr><td>L9637D pin 6 (K)</td><td class="v">11–13 V</td><td><span class="pill ok">hat boşta</span></td></tr>
+        <tr><td>BSS138 LV1 ve LV2</td><td class="v">≈ 3.3 V</td><td><span class="pill warn">5V ise bağlama</span></td></tr>
+        <tr><td>HW-184 VCC (MCP2515)</td><td class="v">3.2–3.4 V</td><td><span class="pill warn">5V ise bağlama</span></td></tr>
+        <tr><td>TJA1050 pin 3</td><td class="v">4.8–5.2 V</td><td></td></tr>
+        <tr><td>HW-184 H – L, J1 sökülü, araçtan ayrık</td><td class="v">açık devre</td><td><span class="pill warn">120 Ω ise J1 takılı</span></td></tr>
+      </tbody>
+    </table>
+    <p class="note">LV pinlerini ve HW-184 VCC'yi ölçerken kartı USB'den besleyip sadece 3V3 ve GND kablolarını tak.</p>
+  </section>
+
+  <section class="card wide">
+    <h2>Okunan veriler (servis 01)</h2>
+    <div class="tbl">
+    <table>
+      <thead><tr><th>PID</th><th>Değer</th><th>Formül (A, B = cevap baytları)</th><th>Ekranda</th></tr></thead>
+      <tbody>
+        <tr><td class="v">0C</td><td>Motor devri</td><td class="v">(256A + B) / 4 rpm</td><td>RPM halkası, her ikinci sorgu</td></tr>
+        <tr><td class="v">0B</td><td>Manifold basıncı (MAP)</td><td class="v">A kPa</td><td>MAP kartı</td></tr>
+        <tr><td class="v">11</td><td>Gaz kelebeği</td><td class="v">100·A / 255 %</td><td>TPS kartı</td></tr>
+        <tr><td class="v">05</td><td>Su sıcaklığı</td><td class="v">A − 40 °C</td><td>CLT kartı</td></tr>
+        <tr><td class="v">0F</td><td>Emme havası sıcaklığı</td><td class="v">A − 40 °C</td><td>IAT kartı</td></tr>
+        <tr><td class="v">42</td><td>ECU besleme voltajı</td><td class="v">(256A + B) / 1000 V</td><td>Akü kartı</td></tr>
+        <tr><td class="v">0E</td><td>Ateşleme avansı</td><td class="v">A / 2 − 64 °</td><td>ADV</td></tr>
+        <tr><td class="v">04</td><td>Motor yükü</td><td class="v">100·A / 255 %</td><td>LOAD</td></tr>
+        <tr><td class="v">0D</td><td>Araç hızı</td><td class="v">A km/h</td><td>KM/H</td></tr>
+        <tr><td class="v">24 / 34</td><td>Geniş bant lambda, B1S1</td><td class="v">(256A + B) · 2 / 65536</td><td>AFR sayfası</td></tr>
+        <tr><td class="v">44</td><td>Hedef lambda</td><td class="v">(256A + B) · 2 / 65536</td><td>Hedef AFR</td></tr>
+        <tr><td class="v">06</td><td>Kısa dönem yakıt düzeltmesi</td><td class="v">(A − 128) · 100 / 128 %</td><td>EGO kor.</td></tr>
+        <tr><td class="v">03</td><td>Yakıt sistemi durumu</td><td class="v">A bit 1 = kapalı çevrim</td><td>CL bayrağı</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="note">Sadece ECU'nun 01 00 / 01 20 / 01 40 cevabında "destekliyorum" dediği PID'ler sorulur. Desteklenmeyenler ekranda <code>--</code> görünür; MAF'lı araçlarda MAP, dar bant sondalı araçlarda AFR boş kalır. K-Line'da sorgu başına ~140 ms gider (RPM ≈ 4 Hz), CAN'de ~15 ms.</p>
+  </section>
+
+  <section class="card">
+    <h2>menuconfig</h2>
+    <table>
+      <thead><tr><th>Ayar</th><th>Değer</th></tr></thead>
+      <tbody>
+        <tr><td>Veri kaynağı</td><td>OBD-II soketi (CAN + K-Line, otomatik)</td></tr>
+        <tr><td>OBD-II → CAN</td><td>açık</td></tr>
+        <tr><td>OBD-II → K-Line</td><td>açık · UART1 · TX GPIO44 · RX GPIO43</td></tr>
+        <tr><td>CAN donanımı</td><td>HW-184 / MCP2515 · 8 MHz kristal</td></tr>
+        <tr><td>SPI pinleri</td><td class="v">SCK 2 · MOSI 1 · MISO 42 · CS 0</td></tr>
+      </tbody>
+    </table>
+    <p class="note">İkisinden biri kapatılırsa o hat hiç denenmez. Dahili TWAI + SN65HVD230 (3.3V, modifikasyon gerektirmez) seçilirse K-Line ile çakışmasın diye pinleri GPIO2 (TX) / GPIO1 (RX) olur.</p>
+  </section>
+
+  <section class="card">
+    <h2>Parçalar</h2>
+    <table>
+      <thead><tr><th>Parça</th><th>Adet</th><th>Nereden</th></tr></thead>
+      <tbody>
+        <tr><td>K-Line kartı parçaları (L9637D, 78L05, 1N4005, 2 × 1 kΩ, 2 × 100 nF, BSS138, plaket)</td><td class="v">1 set</td><td>Kalos listesiyle aynı</td></tr>
+        <tr><td>HW-184 CAN modülü (MCP2515 + TJA1050, 8 MHz)</td><td class="v">1</td><td>pazar yeri: "MCP2515 TJA1050 CAN modülü"</td></tr>
+        <tr><td>microSD breakout / uzatma kartı</td><td class="v">1</td><td>SD yuvası pinlerine erişim</td></tr>
+        <tr><td>OBD-II erkek fiş, kablolu, 16 telli</td><td class="v">1</td><td>6 ve 14 numaralı tellerin bağlı olduğunu kontrol et</td></tr>
+        <tr><td>İnce bükümlü çift kablo</td><td class="v">30 cm</td><td>CAN-H / CAN-L</td></tr>
+        <tr><td>Araç USB şarj aleti</td><td class="v">1</td><td>elde olan</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>Dikkat</h2>
+    <ul>
+      <li>ESP32 bağlıyken ELM327 ya da başka test cihazını sökete takma. Hatta tek test cihazı olmalı.</li>
+      <li>K-Line açıkken GPIO43/44 seri konsoldan alınır, loglar görünmez. Kartı CH343 "UART" Type-C'den değil, diğer Type-C'den besle.</li>
+      <li>MCP2515 SD yuvası pinlerini kullanır: SD kart takılamaz.</li>
+      <li>Desteklenmeyen: 29 bit CAN (bazı GM / Kia), J1850 PWM/VPW (1996–2007 Ford ve GM ABD modelleri).</li>
+      <li>Kontak kapanınca ECU susar; firmware 5 başarısız sorgudan sonra aramaya döner, kontak açılınca kendisi bağlanır.</li>
+    </ul>
+  </section>
+</div>
+</div>

@@ -1,5 +1,21 @@
 menu "VEMS Link"
 
+    choice VEMS_SOURCE
+        prompt "Veri kaynagi"
+        default VEMS_SOURCE_VEMS
+        help
+            VEMS: VEMS v3 ECU'ya USB FTDI / UART ile baglanir (tum VEMS verisi).
+            OBD-II: herhangi bir aracin OBD soketinden standart PID'leri okur. CAN (ISO 15765-4) ve
+            K-Line (ISO 9141-2 / ISO 14230-4 KWP2000) acilista otomatik denenir.
+
+        config VEMS_SOURCE_VEMS
+            bool "VEMS v3 ECU"
+        config VEMS_SOURCE_OBD
+            bool "OBD-II soketi (CAN + K-Line, otomatik)"
+    endchoice
+
+if VEMS_SOURCE_VEMS
+
     choice VEMS_TRANSPORT
         prompt "VEMS baglanti tipi"
         default VEMS_TRANSPORT_USB_FTDI
@@ -59,6 +75,47 @@ menu "VEMS Link"
         int "Sorgu araligi (ms)"
         range 0 2000
         default 40
+
+endif # VEMS_SOURCE_VEMS
+
+    menu "OBD-II"
+        depends on VEMS_SOURCE_OBD
+
+        config VEMS_OBD_CAN
+            bool "CAN: ISO 15765-4, 11 bit, 500/250 kbit/s (OBD pin 6 CAN-H, 14 CAN-L)"
+            default y
+            help
+                CAN donanimi "CAN donanimi" menusunden secilir (HW-184 / MCP2515 onerilir:
+                K-Line ile pin cakismasi yok). Hiz once dinleme modunda aranir, arac hattina
+                yanlis hizda hic bit basilmaz.
+
+        config VEMS_OBD_KLINE
+            bool "K-Line: ISO 9141-2 / ISO 14230-4 KWP2000 (OBD pin 7, L9637D)"
+            default y
+            help
+                L9637D + BSS138 seviye donusturucu, 12 pin konnektor UART ucu. Bu pinler seri
+                konsol hattidir: K-Line acikken loglar kaybolur, "UART" Type-C portu bos olmalidir.
+
+        config VEMS_OBD_KLINE_UART_PORT
+            int "K-Line UART port numarasi"
+            depends on VEMS_OBD_KLINE
+            range 1 2
+            default 1
+
+        config VEMS_OBD_KLINE_TX_GPIO
+            int "K-Line TX GPIO -> L9637D TX (konnektor RXD / GPIO44)"
+            depends on VEMS_OBD_KLINE
+            default 44
+            help
+                GPIO44 acilista giris oldugu icin K hatti bosta kalir. GPIO43 (TXD) secilirse
+                acilis loglari K hattina gider.
+
+        config VEMS_OBD_KLINE_RX_GPIO
+            int "K-Line RX GPIO <- L9637D RX (konnektor TXD / GPIO43)"
+            depends on VEMS_OBD_KLINE
+            default 43
+
+    endmenu
 
     config VEMS_PRINT_INTERVAL_MS
         int "Konsola yazdirma araligi (ms, 0 = kapali)"
@@ -128,17 +185,18 @@ menu "VEMS Link"
         depends on VEMS_UI_ENABLE
         default y
 
-    menu "CAN cikisi (HW-184 / MCP2515)"
+    menu "CAN cikisi / CAN donanimi (HW-184 / MCP2515)"
 
         config VEMS_CAN_ENABLE
             bool "VEMS verisini arac CAN hattina bas (orijinal ECU emulasyonu)"
+            depends on VEMS_SOURCE_VEMS
             default n
             help
                 Donanim secimi asagida: HW-184 (MCP2515, SPI) ya da ESP32 dahili TWAI + transceiver.
 
         choice VEMS_CAN_HW
             prompt "CAN donanimi"
-            depends on VEMS_CAN_ENABLE
+            depends on VEMS_CAN_ENABLE || VEMS_OBD_CAN
             default VEMS_CAN_HW_MCP2515
 
             config VEMS_CAN_HW_MCP2515
@@ -160,14 +218,17 @@ menu "VEMS Link"
         config VEMS_CAN_TWAI_TX_GPIO
             int "TWAI TX GPIO -> transceiver TXD (konnektor pin 10, RXD/GPIO44)"
             depends on VEMS_CAN_HW_TWAI
+            default 2 if VEMS_OBD_KLINE
             default 44
             help
                 GPIO44 acilista giris oldugu icin hat resesif kalir. GPIO43 (TXD) secilirse
                 acilis loglari CAN hattina bit olarak gider ve araca hata cercevesi basar.
+                OBD K-Line acikken GPIO43/44 K-Line'indir: TWAI SD yuvasi pinlerine (GPIO2/1) gecer.
 
         config VEMS_CAN_TWAI_RX_GPIO
             int "TWAI RX GPIO <- transceiver RXD (konnektor pin 9, TXD/GPIO43)"
             depends on VEMS_CAN_HW_TWAI
+            default 1 if VEMS_OBD_KLINE
             default 43
 
         choice VEMS_CAN_VEHICLE

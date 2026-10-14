@@ -145,10 +145,8 @@ void ui_afr_update(const vems_data_t *d, bool fresh)
 
     // target and EGO correction are valid whenever the ECU talks
     if (fresh) {
-        snprintf(buf, sizeof(buf), "%.1f", d->lambda_target * st);
-        ui_tile_set(&a.tiles[T_TARGET], buf, C_TEXT);
-        snprintf(buf, sizeof(buf), "%.0f", d->ego_corr_pct);
-        ui_tile_set(&a.tiles[T_EGO], buf, fabsf(d->ego_corr_pct - 100.0f) > 15.0f ? C_WARN : C_TEXT);
+        ui_tile_set_num(&a.tiles[T_TARGET], "%.1f", d->lambda_target * st, C_TEXT);
+        ui_tile_set_num(&a.tiles[T_EGO], "%.0f", d->ego_corr_pct, fabsf(d->ego_corr_pct - 100.0f) > 15.0f ? C_WARN : C_TEXT);
     } else {
         ui_tile_set(&a.tiles[T_TARGET], "--", C_MUTED);
         ui_tile_set(&a.tiles[T_EGO], "--", C_MUTED);
@@ -180,8 +178,7 @@ void ui_afr_update(const vems_data_t *d, bool fresh)
     ui_tile_set(&a.tiles[T_LAMBDA], buf, zc);
 
     float delta = afr - d->lambda_target * st;
-    snprintf(buf, sizeof(buf), "%+.1f", delta);
-    ui_tile_set(&a.tiles[T_DELTA], buf, fabsf(delta) > 1.0f ? C_WARN : C_OK);
+    ui_tile_set_num(&a.tiles[T_DELTA], "%+.1f", delta, fabsf(delta) > 1.0f ? C_WARN : C_OK);
 
     if (!a.have_minmax) {
         a.afr_min = a.afr_max = afr;

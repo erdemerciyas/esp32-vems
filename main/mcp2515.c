@@ -1,6 +1,6 @@
 /*
  * Minimal MCP2515 driver (HW-184 module: MCP2515 + TJA1050, 8 MHz crystal) over SPI.
- * Polled, standard 11 bit ids only, fixed 500 kbit/s. Not thread safe: use from a single task.
+ * Polled, standard 11 bit ids only, 500 or 250 kbit/s. Not thread safe: use from a single task.
  */
 #include <string.h>
 #include "freertos/FreeRTOS.h"
@@ -43,6 +43,7 @@ static const char *TAG = "mcp2515";
 
 #define OPMODE_MASK         0xE0
 #define OPMODE_NORMAL       0x00
+#define OPMODE_LISTEN       0x60
 #define OPMODE_CONFIG       0x80
 
 // READ STATUS bits
@@ -52,6 +53,7 @@ static const char *TAG = "mcp2515";
 static const uint8_t TXREQ_BITS[3] = {0x04, 0x10, 0x40};
 
 static spi_device_handle_t s_dev;
+static uint8_t s_opmode = OPMODE_NORMAL;
 
 static esp_err_t xfer(const uint8_t *tx, uint8_t *rx, size_t len)
 {
@@ -110,12 +112,20 @@ static bool wait_opmode(uint8_t mode)
 
 esp_err_t mcp2515_init(const mcp2515_config_t *cfg)
 {
-    // 500 kbit/s: 8 TQ @ 8 MHz (sample point 62.5 %) or 16 TQ @ 16 MHz (56 %)
+    // 500 kbit/s: 8 TQ @ 8 MHz (sample point 62.5 %) or 16 TQ @ 16 MHz (56 %), BRP = 0
+    // 250 kbit/s: same segments with BRP = 1 (TQ twice as long)
     uint8_t cnf[3];     // CNF3, CNF2, CNF1
     if (cfg->osc_mhz == 8) {
-        cnf[0] = 0x02; cnf[1] = 0x90; cnf[2] = 0x00;
+        cnf[0] = 0x02; cnf[1] = 0x90;
     } else if (cfg->osc_mhz == 16) {
-        cnf[0] = 0x06; cnf[1] = 0xF0; cnf[2] = 0x00;
+        cnf[0] = 0x06; cnf[1] = 0xF0;
+    } else {
+        return ESP_ERR_INVALID_ARG;
+    }
+    if (cfg->kbps == 500) {
+        cnf[2] = 0x00;
+    } else if (cfg->kbps == 250) {
+        cnf[2] = 0x01;
     } else {
         return ESP_ERR_INVALID_ARG;
     }
@@ -155,20 +165,23 @@ esp_err_t mcp2515_init(const mcp2515_config_t *cfg)
     // RXB0: RXF0/1, RXB1: RXF2..5; unused slots repeat the list
     static const uint8_t FILTER_REGS[MCP2515_MAX_FILTERS] = {REG_RXF0, REG_RXF1, REG_RXF2, REG_RXF3, REG_RXF4, REG_RXF5};
     size_t n = cfg->rx_id_count > MCP2515_MAX_FILTERS ? MCP2515_MAX_FILTERS : cfg->rx_id_count;
-    write_id(REG_RXM0, 0x7FF);
-    write_id(REG_RXM1, 0x7FF);
+    uint16_t mask = cfg->rx_all ? 0 : 0x7FF;    // mask 0: every standard frame passes
+    write_id(REG_RXM0, mask);
+    write_id(REG_RXM1, mask);
     for (int i = 0; i < MCP2515_MAX_FILTERS; i++) {
         write_id(FILTER_REGS[i], n ? cfg->rx_ids[i % n] : 0x7FF);
     }
     write_reg(REG_RXB0CTRL, 0x04);  // RXM = filters, BUKT: roll over into RXB1
     write_reg(REG_RXB1CTRL, 0x00);
 
-    write_reg(REG_CANCTRL, OPMODE_NORMAL);  // also CLKOUT off, one-shot off
-    if (!wait_opmode(OPMODE_NORMAL)) {
-        ESP_LOGE(TAG, "did not enter normal mode (CANSTAT=0x%02x)", read_reg(REG_CANSTAT));
+    s_opmode = cfg->listen_only ? OPMODE_LISTEN : OPMODE_NORMAL;
+    write_reg(REG_CANCTRL, s_opmode);  // also CLKOUT off, one-shot off
+    if (!wait_opmode(s_opmode)) {
+        ESP_LOGE(TAG, "did not enter mode 0x%02x (CANSTAT=0x%02x)", s_opmode, read_reg(REG_CANSTAT));
         return ESP_ERR_INVALID_STATE;
     }
-    ESP_LOGI(TAG, "ready, 500 kbit/s, %d MHz crystal, %u rx filter(s)", cfg->osc_mhz, (unsigned)n);
+    ESP_LOGI(TAG, "ready, %d kbit/s%s, %d MHz crystal, %u rx filter(s)", cfg->kbps,
+             cfg->listen_only ? " listen-only" : "", cfg->osc_mhz, (unsigned)n);
     return ESP_OK;
 }
 
@@ -216,7 +229,7 @@ bool mcp2515_recv(can_frame_t *f)
 bool mcp2515_is_online(void)
 {
     // a power-cycled / unplugged module reads back config mode / 0xFF
-    return (read_reg(REG_CANSTAT) & OPMODE_MASK) == OPMODE_NORMAL;
+    return (read_reg(REG_CANSTAT) & OPMODE_MASK) == s_opmode;
 }
 
 void mcp2515_go_offline(void)
