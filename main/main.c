@@ -1,6 +1,7 @@
 /*
- * ESP32-S3 <-> VEMS v3 (firmware 1.2.x) live data bridge.
- * Polls realtime data from the ECU and prints it on the console (UART0 / CH343P "UART" Type-C port).
+ * K-Line OBD: ESP32-S3 OBD-II K-Line canlı veri göstergesi.
+ * ECU'dan canlı veriyi sorgular, Waveshare 2.1" yuvarlak ekranda gösterir ve konsola (USB-Serial-JTAG,
+ * kartın "USB" Type-C portu) yazar.
  */
 #include <stdio.h>
 #include "sdkconfig.h"
@@ -9,23 +10,14 @@
 #include "esp_log.h"
 #include "esp_timer.h"
 #include "vems_proto.h"
-#if CONFIG_VEMS_CAN_ENABLE
-#include "can_out.h"
-#endif
+#include "settings.h"
+#include "srclog.h"
 #if CONFIG_VEMS_UI_ENABLE
 #include "board_lcd.h"
 #include "dash_ui.h"
 #endif
 
 static const char *TAG = "main";
-
-#if CONFIG_VEMS_SOURCE_OBD
-// OBD-II source, no VEMS link
-#elif CONFIG_VEMS_TRANSPORT_UART
-#define VEMS_LINK vems_link_uart
-#else
-#define VEMS_LINK vems_link_usb_ftdi
-#endif
 
 static void print_task(void *arg)
 {
@@ -41,23 +33,19 @@ static void print_task(void *arg)
         vems_get_stats(&st);
         int64_t age_ms = (esp_timer_get_time() - d.timestamp_us) / 1000;
 
-        printf("RPM %5u | MAP %5.1f kPa | CLT %5.1f C (r%u) | IAT %5.1f C (r%u) | TPS %5.1f %% | BAT %4.1f V | "
-               "LAMBDA %.2f (AFR %4.1f) | ADV %5.1f | PW %5.2f ms | VE %3u | %s%s%s| ok=%lu to=%lu crc=%lu age=%lldms%s\n",
-               d.rpm, d.map_kpa, d.clt_c, d.raw[7], d.iat_c, d.raw[6], d.tps_pct, d.batt_v,
-               d.lambda, d.afr, d.ign_adv_deg, d.pulsewidth_ms, d.ve,
-               (d.engine_status & VEMS_ENG_RUNNING) ? "RUN " : "",
-               (d.engine_status & VEMS_ENG_CRANK) ? "CRANK " : "",
-               (d.engine_status & VEMS_ENG_WARMUP) ? "WARM " : "",
-               (unsigned long)st.frames_ok, (unsigned long)st.timeouts, (unsigned long)st.crc_errors,
+        // ECU'nun göndermediği değerler NAN
+        printf("RPM %5u | SPD %3.0f km/h | MAP %5.1f kPa | CLT %5.1f C | IAT %5.1f C | TPS %5.1f %% | LOAD %5.1f %% | "
+               "BAT %4.1f V | AFR %4.1f | ADV %5.1f | %s | ok=%lu to=%lu age=%lldms%s\n",
+               d.rpm, d.speed_kmh, d.map_kpa, d.clt_c, d.iat_c, d.tps_pct, d.load_pct,
+               d.batt_v, d.afr, d.ign_adv_deg, vems_mode_name(d.mode),
+               (unsigned long)st.frames_ok, (unsigned long)st.timeouts,
                age_ms, d.seq == last_seq ? " (STALE)" : "");
 
 #if CONFIG_VEMS_PRINT_JSON
-        printf("{\"seq\":%lu,\"rpm\":%u,\"map\":%.1f,\"clt\":%.1f,\"iat\":%.1f,\"tps\":%.1f,\"batt\":%.2f,"
-               "\"lambda\":%.3f,\"afr\":%.2f,\"lambda_tgt\":%.3f,\"adv\":%.1f,\"pw\":%.3f,\"dwell\":%.2f,\"ve\":%u,"
-               "\"ego_corr\":%.0f,\"warm\":%.0f,\"iac\":%.1f,\"status\":%u,\"status1\":%u}\n",
-               (unsigned long)d.seq, d.rpm, d.map_kpa, d.clt_c, d.iat_c, d.tps_pct, d.batt_v,
-               d.lambda, d.afr, d.lambda_target, d.ign_adv_deg, d.pulsewidth_ms, d.dwell_ms, d.ve,
-               d.ego_corr_pct, d.warmup_pct, d.iac_pct, d.engine_status, d.status1);
+        printf("{\"seq\":%lu,\"rpm\":%u,\"speed\":%.0f,\"map\":%.1f,\"clt\":%.1f,\"iat\":%.1f,\"tps\":%.1f,"
+               "\"load\":%.1f,\"batt\":%.2f,\"afr\":%.2f,\"adv\":%.1f,\"stft\":%.1f,\"ltft\":%.1f,\"maf\":%.2f}\n",
+               (unsigned long)d.seq, d.rpm, d.speed_kmh, d.map_kpa, d.clt_c, d.iat_c, d.tps_pct,
+               d.load_pct, d.batt_v, d.afr, d.ign_adv_deg, d.ego_corr_pct, d.ltft_pct, d.maf_gs);
 #endif
         last_seq = d.seq;
     }
@@ -66,7 +54,7 @@ static void print_task(void *arg)
 #if CONFIG_VEMS_UI_BOOT_BEEP
 // The board has an active (fixed pitch) buzzer, so the "melody" is pure rhythm:
 // three race start-light beeps, a long GO, then a quick blow-off double chirp.
-// ~1.6 s, ends together with the splash logo intro.
+// ~1.6 s, ends together with the splash intro.
 static const struct {
     uint16_t on_ms;
     uint16_t off_ms;
@@ -93,41 +81,32 @@ static void boot_melody_task(void *arg)
 
 void app_main(void)
 {
-#if CONFIG_VEMS_SOURCE_OBD
-    ESP_LOGI(TAG, "EXTREMEECU dash, source: OBD-II");
-#else
-    ESP_LOGI(TAG, "EXTREMEECU dash, link: %s, %d baud", VEMS_LINK.name, CONFIG_VEMS_BAUD);
-#endif
+    ESP_LOGI(TAG, "K-Line OBD, source: OBD-II K-Line");
+
+    settings_init();    // NVS: brightness, beep ... before anything uses them
 
 #if CONFIG_VEMS_UI_ENABLE
     esp_lcd_panel_handle_t panel;
     ESP_ERROR_CHECK(board_lcd_init(&panel));
+    srclog_step("ekran 480×480");
+    srclog_done(SRCLOG_OK, "OK");
     ESP_ERROR_CHECK(dash_ui_start(panel));
     // let the splash render its first frame, then fade the backlight in
     vTaskDelay(pdMS_TO_TICKS(120));
 #if CONFIG_VEMS_UI_BOOT_BEEP
-    xTaskCreate(boot_melody_task, "melody", 2048, NULL, 2, NULL);
+    if (g_settings.beep) {
+        xTaskCreate(boot_melody_task, "melody", 2048, NULL, 2, NULL);
+    }
 #endif
-    for (int bl = 0; bl <= CONFIG_VEMS_UI_BACKLIGHT; bl += 2) {
+    for (int bl = 0; bl <= g_settings.brightness; bl += 2) {
         board_lcd_set_backlight(bl);
         vTaskDelay(pdMS_TO_TICKS(12));
     }
-    board_lcd_set_backlight(CONFIG_VEMS_UI_BACKLIGHT);
-    vTaskDelay(pdMS_TO_TICKS(400));    // "EKRAN" step visible before USB host starts
+    board_lcd_set_backlight(g_settings.brightness);
+    vTaskDelay(pdMS_TO_TICKS(400));    // first boot log line visible before the source starts
 #endif
 
-#if CONFIG_VEMS_SOURCE_OBD
-    // after board_lcd_init(): the MCP2515 reuses the LCD init SPI pins
     ESP_ERROR_CHECK(obd_start());
-#else
-    ESP_ERROR_CHECK(vems_proto_start(&VEMS_LINK));
-#endif
-#if CONFIG_VEMS_CAN_ENABLE
-    // after board_lcd_init(): GPIO1/2 are shared with the ST7701 init SPI
-    if (can_out_start() != ESP_OK) {
-        ESP_LOGE(TAG, "CAN output could not be started");
-    }
-#endif
     if (CONFIG_VEMS_PRINT_INTERVAL_MS > 0) {
         xTaskCreatePinnedToCore(print_task, "print", 4096, NULL, 3, NULL, 1);
     }

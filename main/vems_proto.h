@@ -3,17 +3,13 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "esp_err.h"
-#include "vems_link.h"
 
 #define VEMS_A_LEN      56      // MegaTune "A" response length (vemsv3.ini ochBlockSize)
 #define VEMS_RAW_MAX    256
 
 typedef enum {
     VEMS_MODE_NONE = 0,
-    VEMS_MODE_TF,               // TriggerFrame: 7E A0 BF 38 7E -> HDLC(payload, type=0x20, CRC16) 7E
-    VEMS_MODE_A,                // MegaTune compatible 'A' -> 56 raw bytes
-    // OBD-II data source (obd.c)
-    VEMS_MODE_OBD_CAN,          // ISO 15765-4, 11 bit ids, baud = CAN bit rate
+    // OBD-II K-Line veri kaynağı (obd.c)
     VEMS_MODE_OBD_KWP_FAST,     // ISO 14230-4 fast init
     VEMS_MODE_OBD_KWP_5BAUD,    // ISO 14230-4 5 baud init
     VEMS_MODE_OBD_ISO9141,      // ISO 9141-2
@@ -72,7 +68,41 @@ typedef struct {
     // OBD-II only. With the OBD source every value the ECU does not support is NAN.
     float load_pct;             // PID 04
     float speed_kmh;            // PID 0D
+    float ltft_pct;             // PID 07, 0 = no correction
+    float maf_gs;               // PID 10
+    float o2_v;                 // PID 14, narrow band B1S1
+    float runtime_s;            // PID 1F
+    float fuel_pct;             // PID 2F
+    float baro_kpa;             // PID 33
+    float oil_c;                // PID 5C
+    float fuel_lh;              // hesaplanan anlık tüketim L/saat (MAF ya da MAP/IAT/RPM)
+    float fuel_l100;            // hesaplanan anlık tüketim L/100 km, 5 km/s altında NAN
+    float o2b_v;                // PID 15, dar bant O2 B1S2 (katalizör arkası)
+    float fuel_rate_lh;         // PID 5E, ECU'nun bildirdiği yakıt debisi
+    int8_t mil_codes;           // PID 01, kayıtlı kod sayısı, -1 = bilinmiyor
+    bool mil_on;                // PID 01, arıza lambası yanıyor
 } vems_data_t;
+
+/**
+ * Values the dash can show. Each source reports the ones it really delivers
+ * (vems_get_channels()), the UI builds its pages from that mask only.
+ */
+typedef enum {
+    CH_RPM, CH_SPEED, CH_MAP, CH_BOOST, CH_AFR, CH_O2V, CH_CLT, CH_IAT, CH_BATT, CH_TPS, CH_LOAD, CH_ADV,
+    CH_OIL, CH_FUEL, CH_TARGET, CH_STFT, CH_LTFT, CH_MAF, CH_BARO, CH_RUNTIME, CH_PW, CH_VE, CH_DWELL, CH_IAC,
+    CH_FUEL_LH, CH_FUEL_L100, CH_O2V2,
+    CH_COUNT
+} vems_ch_t;
+
+#define CH_BIT(c)   (1u << (c))
+
+typedef struct {
+    const char *protocol;       // "CAN 500K", "KWP FAST", "VEMS TF" ...
+    const char *standard;       // "ISO 15765-4 · 11 bit" ...
+    char ecu[12];               // "0x7E8", "0x10", "VEMS v3"
+    char line[20];              // "500 kbit/s", "10400 baud", "USB 19200"
+    bool obd;                   // read-only OBD source (service 01 only)
+} vems_link_info_t;
 
 typedef struct {
     uint32_t frames_ok;
@@ -82,18 +112,13 @@ typedef struct {
 } vems_stats_t;
 
 typedef enum {
-    VEMS_STATE_STOPPED = 0,     // vems_proto_start() not called yet
-    VEMS_STATE_WAIT_LINK,       // transport started, waiting for FTDI / UART
-    VEMS_STATE_LINK_UP,         // transport ready, probing the ECU
+    VEMS_STATE_STOPPED = 0,     // obd_start() henüz çağrılmadı
+    VEMS_STATE_WAIT_LINK,       // K-Line UART açık, ECU aranıyor
+    VEMS_STATE_LINK_UP,         // ECU bulundu, desteklenen PID'ler taranıyor
     VEMS_STATE_ECU_OK,          // ECU answers realtime requests
 } vems_state_t;
 
-esp_err_t vems_proto_start(const vems_link_t *link);
-
-/**
- * OBD-II data source (CONFIG_VEMS_SOURCE_OBD): replaces vems_proto_start(), the getters below
- * then report OBD data. Call after board_lcd_init() (MCP2515 shares the LCD init SPI pins).
- */
+/** OBD-II K-Line veri kaynağı: sorgu görevini başlatır, aşağıdaki fonksiyonlar bundan sonra onun verisini döndürür. */
 esp_err_t obd_start(void);
 
 vems_state_t vems_get_state(void);
@@ -104,3 +129,38 @@ bool vems_get_latest(vems_data_t *out);
 void vems_get_stats(vems_stats_t *out);
 
 const char *vems_mode_name(vems_mode_t mode);
+
+/** CH_BIT mask of the values the connected ECU delivers, 0 while nothing is connected. */
+uint32_t vems_get_channels(void);
+
+/** Protocol / ECU / line details of the current connection (for the connection page). */
+void vems_get_link_info(vems_link_info_t *out);
+
+/** Drops the connection and searches again (the boot log is cleared). */
+void vems_rescan(void);
+
+/**
+ * Ekranda o an görünen kanallar: bunların PID'leri hızlı turda, kalanlar yavaş turda sorgulanır.
+ * 0 = varsayılan sabit liste.
+ */
+void vems_set_wanted_channels(uint32_t mask);
+
+/** Araç profilinde bir PID: ECU destekliyor, son değeri ve yenilenme aralığı. */
+typedef struct {
+    uint8_t pid;
+    bool once;                  // değişmeyen bilgi, bağlantıda bir kez okundu
+    const char *name;
+    const char *unit;
+    char text[24];              // biçimli değer, okunmadıysa "--"
+    uint32_t age_ms;            // son cevaptan beri, UINT32_MAX = hiç gelmedi
+    uint32_t period_ms;         // son iki cevap arası, 0 = henüz bilinmiyor
+} vems_pid_info_t;
+
+/** ECU'nun desteklediği servis 01 PID'leri (01-5F) sırayla. Bağlı değilken 0. */
+int vems_get_profile(vems_pid_info_t *out, int max);
+
+#define VEMS_DTC_MAX    32
+/** Kayıtlı arıza kodları (OBD 03), ham 2 baytlık DTC'ler. Kod sayısı, bağlantı/cevap yoksa -1. ~4 sn'ye kadar bekler. */
+int vems_dtc_read(uint16_t *codes, int max);
+/** Arıza kodlarını ve MIL'i siler (OBD 04). ECU onaylamazsa false. */
+bool vems_dtc_clear(void);

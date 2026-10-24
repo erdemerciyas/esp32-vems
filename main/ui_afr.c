@@ -80,19 +80,19 @@ lv_obj_t *ui_afr_create(int page, int pages)
     a.afr = ui_label(scr, &ui_font_big, C_MUTED, "--.-");
     lv_obj_align(a.afr, LV_ALIGN_TOP_MID, 0, 104);
 
-    a.zone = ui_label(scr, &ui_font_label_lg, C_MUTED, "SENSOR BEKLENIYOR");
+    a.zone = ui_label(scr, &ui_font_label_lg, C_MUTED, "SENSÖR BEKLENİYOR");
     lv_obj_set_style_text_letter_space(a.zone, 2, 0);
     lv_obj_align(a.zone, LV_ALIGN_TOP_MID, 0, 176);
 
     ui_tile_create(&a.tiles[T_LAMBDA], scr, UI_COL_X0, 206, "LAMBDA");
     ui_tile_create(&a.tiles[T_TARGET], scr, UI_COL_X1, 206, "HEDEF AFR");
-    ui_tile_create(&a.tiles[T_EGO],    scr, UI_COL_X2, 206, "EGO KOR %");
-    ui_tile_create(&a.tiles[T_MIN],    scr, UI_COL_X0, 272, "MIN AFR");
+    ui_tile_create(&a.tiles[T_EGO],    scr, UI_COL_X2, 206, "KISA DÜZ. %");
+    ui_tile_create(&a.tiles[T_MIN],    scr, UI_COL_X0, 272, "MİN AFR");
     ui_tile_create(&a.tiles[T_DELTA],  scr, UI_COL_X1, 272, "FARK");
-    ui_tile_create(&a.tiles[T_MAX],    scr, UI_COL_X2, 272, "MAX AFR");
+    ui_tile_create(&a.tiles[T_MAX],    scr, UI_COL_X2, 272, "MAKS AFR");
 
     // reference standards (lambda windows converted to the selected fuel)
-    snprintf(buf, sizeof(buf), "ROLANTI %.1f-%.1f     SEYIR %.1f-%.1f",
+    snprintf(buf, sizeof(buf), "RÖLANTİ %.1f-%.1f     SEYİR %.1f-%.1f",
              st * 0.97f, st * 1.00f, st * 1.00f, st * 1.05f);
     lv_obj_t *ref1 = ui_label(scr, &ui_font_label, C_MUTED, buf);
     lv_obj_align(ref1, LV_ALIGN_TOP_MID, 0, 382);
@@ -100,12 +100,12 @@ lv_obj_t *ui_afr_create(int page, int pages)
              st * 0.85f, st * 0.90f, st * 0.78f, st * 0.82f);
     lv_obj_t *ref2 = ui_label(scr, &ui_font_label, C_MUTED, buf);
     lv_obj_align(ref2, LV_ALIGN_TOP_MID, 0, 400);
-    snprintf(buf, sizeof(buf), "SOGUK %.1f-%.1f     EKONOMI %.1f-%.1f",
+    snprintf(buf, sizeof(buf), "SOĞUK %.1f-%.1f     EKONOMİ %.1f-%.1f",
              st * 0.82f, st * 0.88f, st * 1.05f, st * 1.10f);
     lv_obj_t *ref3 = ui_label(scr, &ui_font_label, C_MUTED, buf);
     lv_obj_align(ref3, LV_ALIGN_TOP_MID, 0, 418);
 
-    lv_obj_t *ref_title = ui_label(scr, &ui_font_label, C_BRAND, "STANDART AFR");
+    lv_obj_t *ref_title = ui_label(scr, &ui_font_label, C_PRIMARY, "STANDART AFR");
     lv_obj_set_style_text_letter_space(ref_title, 3, 0);
     lv_obj_align(ref_title, LV_ALIGN_TOP_MID, 0, 344);
 
@@ -146,7 +146,7 @@ void ui_afr_update(const vems_data_t *d, bool fresh)
     // target and EGO correction are valid whenever the ECU talks
     if (fresh) {
         ui_tile_set_num(&a.tiles[T_TARGET], "%.1f", d->lambda_target * st, C_TEXT);
-        ui_tile_set_num(&a.tiles[T_EGO], "%.0f", d->ego_corr_pct, fabsf(d->ego_corr_pct - 100.0f) > 15.0f ? C_WARN : C_TEXT);
+        ui_tile_set_num(&a.tiles[T_EGO], "%+.1f", d->ego_corr_pct - 100.0f, fabsf(d->ego_corr_pct - 100.0f) > 15.0f ? C_WARN : C_TEXT);
     } else {
         ui_tile_set(&a.tiles[T_TARGET], "--", C_MUTED);
         ui_tile_set(&a.tiles[T_EGO], "--", C_MUTED);
@@ -155,7 +155,7 @@ void ui_afr_update(const vems_data_t *d, bool fresh)
     if (!fresh || !ui_lambda_valid(d)) {
         ui_label_set(a.afr, "--.-");
         lv_obj_set_style_text_color(a.afr, C_MUTED, 0);
-        ui_label_set(a.zone, fresh ? "SENSOR HAZIR DEGIL" : "VERI YOK");
+        ui_label_set(a.zone, fresh ? "SENSÖR HAZIR DEĞİL" : "VERİ YOK");
         lv_obj_set_style_text_color(a.zone, fresh ? C_WARN : C_ALERT, 0);
         ui_tile_set(&a.tiles[T_LAMBDA], "--", C_MUTED);
         ui_tile_set(&a.tiles[T_DELTA], "--", C_MUTED);

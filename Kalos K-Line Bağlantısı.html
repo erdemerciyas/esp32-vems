@@ -1,0 +1,883 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Kalos K-Line Bağlantısı</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: one wide bench-mat wiring figure, then build steps, checks and parts in a two-column grid */
+:root{
+  --bg:#f3f4f1; --fg:#1d2024; --muted:#5d636b; --line:#d5d8d2; --panel:#ffffff;
+  --accent:#b9770e; --ok:#2e8a4a; --warn:#b4472a;
+  --display:"Barlow Condensed","Arial Narrow",sans-serif;
+  --body:"Barlow",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#15171a; --fg:#e7e9ec; --muted:#9aa1ab; --line:#2c3036; --panel:#1d2024; --accent:#e7a33a; --ok:#58c07a; --warn:#e2785c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#15171a; --fg:#e7e9ec; --muted:#9aa1ab; --line:#2c3036; --panel:#1d2024; --accent:#e7a33a; --ok:#58c07a; --warn:#e2785c; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:400 15px/1.55 var(--body);margin:0}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:20px;padding-block:28px 56px;display:grid;gap:28px}
+header{display:grid;gap:6px}
+.eyebrow{font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+h1{font:700 clamp(30px,5vw,46px)/1.05 var(--display);margin:0;text-wrap:balance;letter-spacing:.01em}
+.lede{color:var(--muted);max-width:68ch;margin:0}
+h2{font:600 22px/1.2 var(--display);margin:0 0 10px;letter-spacing:.02em}
+.figure{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#e4e7e1}
+.scroll{overflow-x:auto}
+.scroll svg{display:block;min-width:1080px;width:100%;height:auto}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;padding:12px 16px;background:var(--panel);border-top:1px solid var(--line);font-size:13.5px}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend i{width:26px;height:6px;border-radius:3px;display:inline-block;box-shadow:inset 0 0 0 1px rgba(0,0,0,.35)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:20px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px;min-width:0}
+ol,ul{margin:0;padding-left:20px;display:grid;gap:7px}
+li::marker{color:var(--muted);font-family:var(--mono);font-size:13px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 12px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+td.v{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill{display:inline-block;font:600 11px var(--mono);padding:2px 7px;border-radius:99px;border:1px solid currentColor}
+.ok{color:var(--ok)} .warn{color:var(--warn)}
+a{color:var(--accent);text-underline-offset:2px}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+.note{font-size:13.5px;color:var(--muted);margin:10px 0 0}
+code{font-family:var(--mono);font-size:.9em}
+.card h3{font:600 14px var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:18px 0 6px}
+.plugbox{background:#e4e7e1;border-radius:8px;padding:10px;max-width:420px}
+.plugbox svg{display:block;width:100%;height:auto}
+.pinchip{display:inline-block;width:10px;height:10px;border-radius:50%;margin:0 4px 0 2px;vertical-align:-1px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.4)}
+/* SVG (bench mat keeps one light look in both themes) */
+.lbl{font:600 15px var(--display);fill:#23262b;letter-spacing:.02em}
+.sm{font:500 12px var(--body);fill:#4b5058}
+.pin{font:500 11.5px var(--mono);fill:#23262b}
+.silk{font:500 10px var(--mono);fill:#f2f5f8}
+.o{fill:none;stroke-width:8;stroke-linecap:round;stroke-linejoin:round}
+.c{fill:none;stroke-width:5.5;stroke-linecap:round;stroke-linejoin:round}
+.h{fill:none;stroke:#fff;stroke-opacity:.38;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
+.red.o{stroke:#6e0f0f}.red.c{stroke:#d62828}
+.yel.o{stroke:#7d5f00}.yel.c{stroke:#f2c230}
+.blk.o{stroke:#000}.blk.c{stroke:#2b2d30}
+.org.o{stroke:#7f3f00}.org.c{stroke:#f07f1a}
+.blu.o{stroke:#132f63}.blu.c{stroke:#2f6fd6}
+.grn.o{stroke:#124a22}.grn.c{stroke:#2e9e4f}
+.pur.o{stroke:#3d2366}.pur.c{stroke:#8e5bd1}.dot{fill:#1b1d20;stroke:#e4e7e1;stroke-width:2}
+.lead{stroke:#a9aeb5;stroke-width:3;stroke-linecap:round}
+/* perfboard: two board views side by side, stacked on narrow screens */
+.pb{background:var(--panel)}
+.pbhead{padding:16px 18px 4px}
+.pbviews{display:grid;gap:10px;padding:8px}
+.pbviews .scroll svg{min-width:640px}
+.pbcap{font:600 14px var(--display);letter-spacing:.03em;padding:6px 8px;color:var(--fg)}
+.pbcap span{font:400 13px var(--body);color:var(--muted)}
+.pb svg{background:#e4e7e1;border-radius:8px}
+.pg{font:500 9.5px var(--mono);fill:#5d636b}
+.pbl{font:600 13px var(--display);fill:#fff;paint-order:stroke;stroke:#3a2410;stroke-width:3px;stroke-linejoin:round}
+.pbs{font:500 10.5px var(--body);fill:#fff;paint-order:stroke;stroke:#3a2410;stroke-width:3px;stroke-linejoin:round}
+.pbp{font:600 9.5px var(--mono);fill:#fff;paint-order:stroke;stroke:#1b1d20;stroke-width:3px;stroke-linejoin:round}
+.pgh{fill:none;stroke:#fff;stroke-opacity:.7;stroke-width:1.5;stroke-dasharray:5 4}
+.pdash{fill:none;stroke-width:3;stroke-dasharray:5 4;stroke-linecap:round;stroke-linejoin:round;opacity:.9}
+.redd{stroke:#ff6b6b}.yeld{stroke:#ffd84d}.orgd{stroke:#ff9a3c}.blkd{stroke:#1b1d20}.blud{stroke:#3d7cff}.grnd{stroke:#29c45a}.purd{stroke:#b48cf0}
+.pbw{white-space:normal!important;font-size:12.5px}
+/* perfboard:css */
+.bbn{paint-order:stroke;stroke:#f6f5f0;stroke-width:4px;stroke-linejoin:round}
+.bbr{font:700 15px var(--mono)}
+.bbs{font:500 9.5px var(--mono);fill:#23262b}
+.pbb{font:600 12.5px var(--display);fill:#23262b;paint-order:stroke;stroke:#f6f5f0;stroke-width:4px;stroke-linejoin:round}
+/* breadboard:css */
+.bbn{paint-order:stroke;stroke:#f6f5f0;stroke-width:4px;stroke-linejoin:round}
+.bbn{paint-order:stroke;stroke:#f6f5f0;stroke-width:4px;stroke-linejoin:round}
+.bbn{paint-order:stroke;stroke:#f6f5f0;stroke-width:4px;stroke-linejoin:round}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Chevrolet Kalos 1.4 · 2005 · ISO 14230-4 KWP fast init</div>
+  <h1>Kalos K-Line Bağlantısı</h1>
+  <p class="lede">OBD soketinden Waveshare ESP32-S3-Touch-LCD-2.1 ekran kartına (480×480 yuvarlak dokunmatik ekran): tek L9637D entegresi, bir 78L05 ve hazır bir seviye dönüştürücü modülü. Devre OBD soketinin yanındaki kutuda durur, ekran kartı torpidoda; aralarında 4 telli bir kablo vardır. Kart, <code>USB</code> yazan Type-C'sinden aracın USB şarj aletiyle beslenir. Bütün veriler kartın kendi ekranında görünür. K-Line kartın 4 pinli UART başlığından UART1'i kullanır: TX GPIO44 (başlıkta <code>RXD</code>), RX GPIO43 (başlıkta <code>TXD</code>).</p>
+</header>
+
+<section class="figure" aria-label="Bağlantı şeması">
+<div class="scroll">
+<svg viewBox="0 95 1560 790" role="img" aria-labelledby="svgt">
+<title id="svgt">OBD-II fişten L9637D, 78L05, BSS138 modülü üzerinden Waveshare ESP32-S3-Touch-LCD-2.1 ekran kartının 4 pinli UART başlığına kablo bağlantısı</title>
+<defs>
+  <pattern id="mat" width="20" height="20" patternUnits="userSpaceOnUse">
+    <rect width="20" height="20" fill="#e4e7e1"/><path d="M20 0H0V20" fill="none" stroke="#d3d7cf" stroke-width="1"/>
+  </pattern>
+  <linearGradient id="gBlk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b3d40"/><stop offset="1" stop-color="#0f1011"/></linearGradient>
+  <linearGradient id="gPlug" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#34363a"/><stop offset=".5" stop-color="#1b1c1e"/><stop offset="1" stop-color="#0b0b0c"/></linearGradient>
+  <linearGradient id="gCyl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0d0d0e"/><stop offset=".45" stop-color="#4a4c50"/><stop offset="1" stop-color="#0d0d0e"/></linearGradient>
+  <linearGradient id="gRes" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#b39457"/><stop offset=".45" stop-color="#efdcb0"/><stop offset="1" stop-color="#b39457"/></linearGradient>
+  <linearGradient id="gPcb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a6cb5"/><stop offset="1" stop-color="#1a4a85"/></linearGradient>
+  <linearGradient id="gPcbG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#22764a"/><stop offset="1" stop-color="#155232"/></linearGradient>
+  <linearGradient id="gGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6da86"/><stop offset="1" stop-color="#b08226"/></linearGradient>
+  <radialGradient id="gCap" cx=".35" cy=".35" r=".7"><stop offset="0" stop-color="#f7c86a"/><stop offset="1" stop-color="#c9781f"/></radialGradient>
+  <radialGradient id="gScr" cx=".5" cy=".4" r=".7"><stop offset="0" stop-color="#1a2230"/><stop offset="1" stop-color="#05070a"/></radialGradient>
+
+  <path id="wGnd4" d="M205 440H240V330H600"/>
+  <path id="wGndA" d="M800 580H865V330"/>
+  <path id="wK" d="M205 480H545V350H845V530H800"/>
+  <path id="w12" d="M205 520H250V760H800V740"/>
+  <path id="wGnd5" d="M205 560H230V830H960V680"/>
+  <path id="wGndM" d="M600 330H955V505H1000"/>
+  <path id="wVS" d="M560 760V365H825V480H800"/>
+  <path id="wRes" d="M470 760V700M470 560V480"/>
+  <path id="wResA" d="M470 700H452V560H470"/>
+  <path id="wResB" d="M470 700H488V560H470"/>
+  <path id="wGnd78" d="M820 735V830"/>
+  <path id="w5v" d="M840 735V750H880V634"/>
+  <path id="wVcc" d="M640 530H612V634H900V625.5a8 8 0 0 1 0 -16V542.5H1000"/>
+  <path id="wTx" d="M640 580H625V617.5H1000"/>
+  <path id="wRx" d="M640 430H599V646H872a8 8 0 0 1 16 0H940V625.5a8 8 0 0 1 0 -16V580H1000"/>
+  <path id="wL1" d="M1110 617.5H1200V496H1311"/>
+  <path id="wL2" d="M1110 580H1170V470H1311"/>
+  <path id="wL3v" d="M1110 542.5H1150V444H1311"/>
+  <path id="wLg" d="M1110 505H1130V418H1311"/></defs>
+
+<rect x="0" y="95" width="1560" height="790" fill="url(#mat)"/>
+
+<!-- ===== Vehicle socket inset ===== -->
+<g>
+  <rect x="22" y="108" width="196" height="150" rx="8" fill="#f8f8f5" stroke="#c4c8c0"/>
+  <text x="120" y="130" text-anchor="middle" class="sm" style="font-weight:600;fill:#23262b">Araçtaki OBD soketi · önden</text>
+  <path d="M45 145H195L182 215H58Z" fill="url(#gPlug)" stroke="#000"/>
+  <g fill="#5a5d62">
+    <circle cx="62" cy="165" r="5"/><circle cx="79.5" cy="165" r="5"/><circle cx="97" cy="165" r="5"/>
+    <circle cx="149.5" cy="165" r="5"/><circle cx="167" cy="165" r="5"/><circle cx="184.5" cy="165" r="5"/>
+    <circle cx="68" cy="196" r="5"/><circle cx="84" cy="196" r="5"/><circle cx="100" cy="196" r="5"/><circle cx="116" cy="196" r="5"/>
+    <circle cx="132" cy="196" r="5"/><circle cx="148" cy="196" r="5"/><circle cx="164" cy="196" r="5"/>
+  </g>
+  <circle cx="114.5" cy="165" r="5.5" fill="#eceeea" stroke="#000"/>
+  <circle cx="132" cy="165" r="5.5" fill="#eceeea" stroke="#000"/>
+  <circle cx="167" cy="165" r="5.5" fill="#f2c230" stroke="#000"/>
+  <circle cx="180" cy="196" r="5.5" fill="#d62828" stroke="#000"/>
+  <g class="pin" style="font-size:9px;fill:#f8f8f5" text-anchor="middle">
+    <text x="62" y="158">1</text><text x="114.5" y="156">4</text><text x="132" y="156">5</text><text x="167" y="156">7</text>
+    <text x="68" y="210">9</text><text x="180" y="210">16</text>
+  </g>
+  <text x="34" y="240" class="pin" style="font-size:11px"><tspan fill="#5d636b">4·5</tspan> GND</text>
+  <text x="100" y="240" class="pin" style="font-size:11px"><tspan fill="#a47e00">7</tspan> K</text>
+  <text x="140" y="240" class="pin" style="font-size:11px"><tspan fill="#c22">16</tspan> +12V</text>
+</g>
+
+<!-- ===== Wires (outline, core, highlight) ===== -->
+<g>
+  <use href="#wGnd4" class="blk o"/><use href="#wGnd4" class="blk c"/><use href="#wGnd4" class="h"/>
+  <use href="#wGnd5" class="blk o"/><use href="#wGnd5" class="blk c"/><use href="#wGnd5" class="h"/>
+  <use href="#wGndM" class="blk o"/><use href="#wGndM" class="blk c"/><use href="#wGndM" class="h"/>
+  <use href="#wGndA" class="blk o"/><use href="#wGndA" class="blk c"/><use href="#wGndA" class="h"/>
+  <use href="#wGnd78" class="blk o"/><use href="#wGnd78" class="blk c"/><use href="#wGnd78" class="h"/>
+  <use href="#w12" class="red o"/><use href="#w12" class="red c"/><use href="#w12" class="h"/>
+  <use href="#wVS" class="red o"/><use href="#wVS" class="red c"/><use href="#wVS" class="h"/>
+  <use href="#wRes" class="red o"/><use href="#wRes" class="red c"/><use href="#wRes" class="h"/>
+  <use href="#wResA" class="red o"/><use href="#wResA" class="red c"/><use href="#wResA" class="h"/>
+  <use href="#wResB" class="red o"/><use href="#wResB" class="red c"/><use href="#wResB" class="h"/>
+  <use href="#wK" class="yel o"/><use href="#wK" class="yel c"/><use href="#wK" class="h"/>
+  <use href="#w5v" class="org o"/><use href="#w5v" class="org c"/><use href="#w5v" class="h"/>
+  <use href="#wVcc" class="org o"/><use href="#wVcc" class="org c"/><use href="#wVcc" class="h"/>
+  <use href="#wTx" class="blu o"/><use href="#wTx" class="blu c"/><use href="#wTx" class="h"/>
+  <use href="#wRx" class="grn o"/><use href="#wRx" class="grn c"/><use href="#wRx" class="h"/>
+  <use href="#wL1" class="blu o"/><use href="#wL1" class="blu c"/><use href="#wL1" class="h"/>
+  <use href="#wL3v" class="pur o"/><use href="#wL3v" class="pur c"/><use href="#wL3v" class="h"/>
+  <use href="#wLg" class="blk o"/><use href="#wLg" class="blk c"/><use href="#wLg" class="h"/>
+  <use href="#wL2" class="grn o"/><use href="#wL2" class="grn c"/><use href="#wL2" class="h"/></g>
+
+<!-- ===== OBD-II male plug ===== -->
+<g>
+  <rect x="24" y="432" width="40" height="136" rx="4" fill="#161718" stroke="#000"/>
+  <rect x="28" y="440" width="8" height="120" rx="2" fill="#3a3c40"/>
+  <rect x="58" y="404" width="114" height="192" rx="16" fill="url(#gPlug)" stroke="#000"/>
+  <rect x="70" y="396" width="44" height="12" rx="3" fill="#55585e" stroke="#000"/>
+  <g stroke="#3e4146" stroke-width="3" stroke-linecap="round">
+    <path d="M122 430V570"/><path d="M134 430V570"/><path d="M146 430V570"/><path d="M158 430V570"/>
+  </g>
+  <path d="M170 420L208 432V570L170 582Z" fill="#141516" stroke="#000"/>
+  <text x="100" y="625" text-anchor="middle" class="lbl">OBD-II erkek fiş</text>
+  <text x="100" y="643" text-anchor="middle" class="sm">kablolu, 16 pin</text>
+</g>
+
+<!-- ===== 1N4007 diode ===== -->
+<g>
+  <path d="M290 760H320M380 760H410" class="lead"/>
+  <rect x="318" y="750" width="64" height="20" rx="9" fill="url(#gBlk)" stroke="#000"/>
+  <rect x="364" y="750" width="9" height="20" fill="#c9ccd1"/>
+  <text x="350" y="741" text-anchor="middle" class="lbl">1N4005</text>
+  <text x="350" y="792" text-anchor="middle" class="sm">gri bant devreye bakar</text>
+</g>
+
+<!-- ===== 2 x 1k resistors in parallel (500 ohm K pull-up) ===== -->
+<g>
+  <rect x="444" y="600" width="16" height="60" rx="7" fill="url(#gRes)" stroke="#7b6438"/>
+  <rect x="444" y="610" width="16" height="5" fill="#6b3d1f"/>
+  <rect x="444" y="620" width="16" height="5" fill="#111"/>
+  <rect x="444" y="630" width="16" height="5" fill="#c62828"/>
+  <rect x="444" y="646" width="16" height="4" fill="#c8a03a"/>
+  <rect x="480" y="600" width="16" height="60" rx="7" fill="url(#gRes)" stroke="#7b6438"/>
+  <rect x="480" y="610" width="16" height="5" fill="#6b3d1f"/>
+  <rect x="480" y="620" width="16" height="5" fill="#111"/>
+  <rect x="480" y="630" width="16" height="5" fill="#c62828"/>
+  <rect x="480" y="646" width="16" height="4" fill="#c8a03a"/>
+  <text x="504" y="616" class="lbl">2 × 1 kΩ</text>
+  <text x="504" y="633" class="sm">paralel = 500 Ω</text>
+  <text x="504" y="648" class="sm">K pull-up</text>
+</g>
+
+<!-- ===== C1 100nF on +12V ===== -->
+<g>
+  <path d="M520 760V782M520 808V830" class="lead" style="stroke-width:2.5"/>
+  <ellipse cx="520" cy="795" rx="13" ry="14" fill="url(#gCap)" stroke="#8a4f12"/>
+  <text x="520" y="799" text-anchor="middle" class="pin" style="font-size:8px">104</text>
+  <text x="538" y="800" class="sm">100 nF</text>
+</g>
+
+<!-- ===== L9637D SO8->DIP adaptör, fotoğraftaki duruş: delik 1 sol üstte, yazı okunur, pin-1 noktası sol altta ===== -->
+<g>
+  <rect x="640" y="400" width="160" height="210" rx="6" fill="url(#gPcbG)" stroke="#0c3b22"/>
+  <rect x="646" y="406" width="148" height="198" rx="4" fill="none" stroke="#e8eef6" stroke-opacity=".35"/>
+  <g fill="#c4c8ce">
+    <rect x="695" y="446" width="8" height="34"/><rect x="709" y="446" width="8" height="34"/>
+    <rect x="723" y="446" width="8" height="34"/><rect x="737" y="446" width="8" height="34"/>
+    <rect x="695" y="530" width="8" height="34"/><rect x="709" y="530" width="8" height="34"/>
+    <rect x="723" y="530" width="8" height="34"/><rect x="737" y="530" width="8" height="34"/>
+  </g>
+  <rect x="686" y="472" width="68" height="62" rx="3" fill="url(#gBlk)" stroke="#000"/>
+  <text x="720" y="499" text-anchor="middle" class="pin" style="font-size:10px;fill:#c9ccd1">L9637D</text>
+  <text x="720" y="515" text-anchor="middle" class="pin" style="font-size:8px;fill:#8d9097">ST</text>
+  <circle cx="694" cy="525" r="3" fill="#6a6d72"/>
+  <g class="silk" text-anchor="middle" style="font-size:8px">
+    <text x="699" y="441">8</text><text x="713" y="441">7</text><text x="727" y="441">6</text><text x="741" y="441">5</text>
+    <text x="699" y="575">1</text><text x="713" y="575">2</text><text x="727" y="575">3</text><text x="741" y="575">4</text>
+  </g>
+  <circle cx="699" cy="585" r="2.5" fill="#f2f5f8"/>
+  <g fill="url(#gGold)" stroke="#7a5a12">
+    <rect x="634" y="424" width="12" height="12" rx="2"/><rect x="634" y="474" width="12" height="12" rx="2"/>
+    <rect x="634" y="524" width="12" height="12" rx="2"/><rect x="634" y="574" width="12" height="12" rx="2"/>
+    <rect x="794" y="424" width="12" height="12" rx="2"/><rect x="794" y="474" width="12" height="12" rx="2"/>
+    <rect x="794" y="524" width="12" height="12" rx="2"/><rect x="794" y="574" width="12" height="12" rx="2"/>
+  </g>
+  <g class="silk">
+    <text x="651" y="434">1 RX</text><text x="651" y="484" style="fill:#9fb8a8">2 LO</text>
+    <text x="651" y="534">3 VCC</text><text x="651" y="584">4 TX</text>
+  </g>
+  <g class="silk" text-anchor="end">
+    <text x="789" y="434" style="fill:#9fb8a8">8 LI</text><text x="789" y="484">7 VS</text>
+    <text x="789" y="534">6 K</text><text x="789" y="584">5 GND</text>
+  </g>
+  <text x="720" y="601" text-anchor="middle" class="silk" style="font-size:8px">2 LO · 8 LI boş</text>
+  <text x="720" y="390" text-anchor="middle" class="lbl">L9637D adaptör</text>
+</g>
+
+<!-- ===== 78L05 (TO-92, rear view) ===== -->
+<g>
+  <path d="M800 712V735M820 712V735M840 712V735" class="lead"/>
+  <rect x="790" y="662" width="60" height="52" rx="7" fill="url(#gCyl)" stroke="#000"/>
+  <g class="silk" text-anchor="middle" style="font-size:8.5px">
+    <text x="801" y="706">IN</text><text x="820" y="706">GND</text><text x="840" y="706">OUT</text>
+  </g>
+  <text x="780" y="684" text-anchor="end" class="lbl">78L05</text>
+  <text x="780" y="700" text-anchor="end" class="sm">arkadan görünüm</text>
+  <text x="780" y="715" text-anchor="end" class="sm">(yazılı düz yüz arkada)</text>
+</g>
+
+<!-- ===== C2 100nF on 5V ===== -->
+<g>
+  <path d="M880 680H906M934 680H960" class="lead" style="stroke-width:2.5"/>
+  <ellipse cx="920" cy="680" rx="14" ry="13" fill="url(#gCap)" stroke="#8a4f12"/>
+  <text x="920" y="684" text-anchor="middle" class="pin" style="font-size:8px">104</text>
+  <text x="920" y="711" text-anchor="middle" class="sm">100 nF</text>
+</g>
+
+<!-- ===== BSS138 level shifter module ===== -->
+<g>
+  <rect x="1000" y="404" width="110" height="240" rx="5" fill="url(#gPcb)" stroke="#0f2f57"/>
+  <g fill="#111"><rect x="1047" y="420" width="16" height="10" rx="1"/><rect x="1047" y="458" width="16" height="10" rx="1"/>
+    <rect x="1047" y="571" width="16" height="10" rx="1"/><rect x="1047" y="608" width="16" height="10" rx="1"/></g>
+  <g fill="#d9c69a"><rect x="1030" y="438" width="10" height="5"/><rect x="1070" y="438" width="10" height="5"/>
+    <rect x="1030" y="476" width="10" height="5"/><rect x="1070" y="476" width="10" height="5"/>
+    <rect x="1030" y="589" width="10" height="5"/><rect x="1070" y="589" width="10" height="5"/>
+    <rect x="1030" y="626" width="10" height="5"/><rect x="1070" y="626" width="10" height="5"/></g>
+  <g class="silk">
+    <text x="1012" y="434">HV4</text><text x="1012" y="471">HV3</text><text x="1012" y="509">GND</text>
+    <text x="1012" y="546">HV</text><text x="1012" y="584">HV2</text><text x="1012" y="621">HV1</text>
+  </g>
+  <g class="silk" text-anchor="end">
+    <text x="1098" y="434">LV4</text><text x="1098" y="471">LV3</text><text x="1098" y="509">GND</text>
+    <text x="1098" y="546">LV</text><text x="1098" y="584">LV2</text><text x="1098" y="621">LV1</text>
+  </g>
+  <g fill="url(#gGold)" stroke="#7a5a12">
+    <rect x="994" y="424" width="12" height="12" rx="2"/><rect x="994" y="461.5" width="12" height="12" rx="2"/>
+    <rect x="994" y="499" width="12" height="12" rx="2"/><rect x="994" y="536.5" width="12" height="12" rx="2"/>
+    <rect x="994" y="574" width="12" height="12" rx="2"/><rect x="994" y="611.5" width="12" height="12" rx="2"/>
+    <rect x="1104" y="424" width="12" height="12" rx="2"/><rect x="1104" y="461.5" width="12" height="12" rx="2"/>
+    <rect x="1104" y="499" width="12" height="12" rx="2"/><rect x="1104" y="536.5" width="12" height="12" rx="2"/>
+    <rect x="1104" y="574" width="12" height="12" rx="2"/><rect x="1104" y="611.5" width="12" height="12" rx="2"/>
+  </g>
+  <text x="1055" y="390" text-anchor="middle" class="lbl">BSS138 seviye dönüştürücü</text>
+  <text x="1000" y="666" class="sm">5V tarafı</text>
+  <text x="1110" y="666" text-anchor="end" class="sm">3.3V tarafı</text>
+</g>
+
+<!-- ===== ESP32 pin labels (on the wires) ===== -->
+<g class="pin">
+  <text x="1294" y="411" text-anchor="end">GND</text>
+  <text x="1294" y="437" text-anchor="end">3V3</text>
+  <text x="1294" y="463" text-anchor="end">RX · GPIO43</text>
+  <text x="1294" y="489" text-anchor="end">TX · GPIO44</text>
+</g>
+<g>
+  <text x="1218" y="540" class="pin" style="fill:#b4472a">Dikkat: yazılar çapraz</text>
+  <text x="1218" y="556" class="sm">başlık RXD = bizim TX (GPIO44)</text>
+  <text x="1218" y="571" class="sm">başlık TXD = bizim RX (GPIO43)</text>
+</g>
+
+<!-- ===== Waveshare ESP32-S3-Touch-LCD-2.1 (önden, yuvarlak ekran, 4 pinli UART başlığı solda) ===== -->
+<g>
+  <text x="1428" y="336" text-anchor="middle" class="lbl">Waveshare ESP32-S3-Touch-LCD-2.1</text>
+  <text x="1428" y="353" text-anchor="middle" class="sm">480×480 yuvarlak dokunmatik ekran · torpidoda</text>
+  <rect x="1316" y="398" width="84" height="118" rx="8" fill="#202326" stroke="#000" stroke-width="1.5"/>
+  <circle cx="1460" cy="457" r="94" fill="#202326" stroke="#000" stroke-width="1.5"/>
+  <circle cx="1460" cy="457" r="74" fill="url(#gScr)" stroke="#55585e"/>
+  <path d="M1420.4 496.6A56 56 0 1 1 1499.6 496.6" fill="none" stroke="#3a3f47" stroke-width="7" stroke-linecap="round"/>
+  <path d="M1420.4 496.6A56 56 0 0 1 1460 401" fill="none" stroke="#e7a33a" stroke-width="7" stroke-linecap="round"/>
+  <text x="1460" y="464" text-anchor="middle" style="font:700 20px var(--mono);fill:#f2f5f8">1450</text>
+  <text x="1460" y="481" text-anchor="middle" class="silk" style="font-size:8px;fill:#9aa1ab">RPM</text>
+  <!-- 4 pinli UART başlığı: GND, 3V3, TXD, RXD -->
+  <rect x="1300" y="404" width="22" height="106" rx="2" fill="#111" stroke="#000"/>
+  <g fill="url(#gGold)" stroke="#7a5a12">
+    <rect x="1305" y="412" width="12" height="12" rx="2"/><rect x="1305" y="438" width="12" height="12" rx="2"/>
+    <rect x="1305" y="464" width="12" height="12" rx="2"/><rect x="1305" y="490" width="12" height="12" rx="2"/>
+  </g>
+  <g class="silk" style="font-size:8.5px">
+    <text x="1328" y="421">GND</text><text x="1328" y="447">3V3</text>
+    <text x="1328" y="473" style="fill:#ffd84d;font-weight:700">TXD</text><text x="1328" y="499" style="fill:#ffd84d;font-weight:700">RXD</text>
+  </g>
+  <!-- iki USB-C: USB (besleme + log), UART (CH343, boş kalmalı) -->
+  <rect x="1398" y="534" width="28" height="12" rx="5" fill="#9ca1a8" stroke="#555"/>
+  <rect x="1482" y="538" width="28" height="12" rx="5" fill="#9ca1a8" stroke="#555"/>
+  <path d="M1486 536L1506 552M1506 536L1486 552" stroke="#d62828" stroke-width="2.5" stroke-linecap="round"/>
+  <text x="1412" y="530" text-anchor="middle" class="silk" style="font-size:8px">USB</text>
+  <text x="1496" y="534" text-anchor="middle" class="silk" style="font-size:8px">UART</text>
+  <text x="1486" y="574" text-anchor="middle" class="sm" style="fill:#b4472a;font-weight:600">UART portu boş</text>
+  <text x="1486" y="589" text-anchor="middle" class="sm" style="fill:#b4472a">takılırsa K-Line kopar</text>
+</g>
+
+<!-- ===== USB cable + car charger ===== -->
+<g>
+  <path d="M1412 546V705" fill="none" stroke="#1e1f22" stroke-width="9" stroke-linecap="round"/>
+  <path d="M1412 546V705" fill="none" stroke="#5b5f66" stroke-width="5" stroke-linecap="round"/>
+  <rect x="1402" y="696" width="20" height="16" rx="2" fill="#2a2c30" stroke="#000"/>
+  <rect x="1380" y="710" width="64" height="92" rx="12" fill="url(#gPlug)" stroke="#000"/>
+  <rect x="1398" y="722" width="28" height="9" rx="2" fill="#0b0b0c" stroke="#666"/>
+  <rect x="1380" y="772" width="64" height="5" fill="#c0392b"/>
+  <rect x="1396" y="802" width="32" height="20" rx="3" fill="#2a2c30" stroke="#000"/>
+  <rect x="1406" y="822" width="12" height="12" rx="2" fill="#c4c8ce" stroke="#777"/>
+  <text x="1370" y="750" text-anchor="end" class="lbl">Araç USB şarj aleti</text>
+  <text x="1370" y="767" text-anchor="end" class="sm">çakmaklıktan 12V → 5V</text>
+  <text x="1370" y="783" text-anchor="end" class="sm">kartın USB yazan Type-C'sine</text>
+</g>
+
+<!-- ===== Wire labels ===== -->
+<g>
+  <text x="300" y="320" class="pin">Pin 4 · Şasi GND</text>
+  <text x="300" y="470" class="pin" style="fill:#7d5f00">Pin 7 · K-Line</text>
+  <text x="260" y="560" class="pin" style="fill:#a31b1b">Pin 16 · +12V</text>
+  <text x="260" y="575" class="sm">sürekli akü</text>
+  <text x="300" y="852" class="pin">Pin 5 · Sinyal GND</text>
+  <text x="958" y="609" class="pin" style="fill:#1d4a9a">TX</text>
+  <text x="950" y="573" class="pin" style="fill:#1b6a36">RX</text>
+  <text x="888" y="742" class="pin" style="fill:#a65400">5V</text>
+</g>
+
+<!-- ===== Junctions ===== -->
+<g class="dot">
+  <circle cx="470" cy="480" r="5.5"/><circle cx="470" cy="760" r="5.5"/>
+  <circle cx="470" cy="700" r="5.5"/><circle cx="470" cy="560" r="5.5"/>
+  <circle cx="520" cy="760" r="5.5"/><circle cx="520" cy="830" r="5.5"/>
+  <circle cx="560" cy="760" r="5.5"/><circle cx="820" cy="830" r="5.5"/>
+  <circle cx="880" cy="634" r="5.5"/><circle cx="880" cy="680" r="5.5"/><circle cx="960" cy="680" r="5.5"/>
+  <circle cx="865" cy="330" r="5.5"/>
+</g>
+</svg>
+</div>
+<div class="legend">
+  <span><i style="background:#d62828"></i>+12V (OBD pin 16)</span>
+  <span><i style="background:#f2c230"></i>K-Line (pin 7)</span>
+  <span><i style="background:#f07f1a"></i>5V (78L05 çıkışı)</span>
+  <span><i style="background:#8e5bd1"></i>3.3V (ESP32)</span>
+  <span><i style="background:#2f6fd6"></i>TX: ESP → araç</span>
+  <span><i style="background:#2e9e4f"></i>RX: araç → ESP</span>
+  <span><i style="background:#2b2d30"></i>GND</span></div>
+</section>
+
+<!-- perfboard:start -->
+<section class="figure pb" aria-label="Delikli plaket yerleşimi">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <pattern id="pbHole" x="140" y="56" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="12" cy="12" r="2.6" fill="#3a2614"/></pattern>
+  <pattern id="pbPad" x="140" y="56" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="12" cy="12" r="7.5" fill="#d9a35e" stroke="#8a5a2b" stroke-width="1"/><circle cx="12" cy="12" r="2.6" fill="#2a1a0c"/></pattern>
+</defs></svg>
+<div class="pbhead"><h2>Delikli plaket yerleşimi · 24 × 18 delik</h2>
+<p class="note">Delikler harf (satır A–R) ve numarayla (sütun 1–24) adlandırılır. Bağlantılar alt yüzde kalaylı tel ya da lehim köprüsüyle yapılır. Üstteki şekil parça tarafını, alttaki plaket ters çevrildiğinde görünen lehim tarafını gösterir. Lehim tarafı aynalıdır: 1 numaralı sütun sağdadır.</p></div>
+<div class="pbviews">
+  <div><div class="pbcap">Üst yüz · parça tarafı <span>(kesikli çizgiler alt yüzdeki bağlantılar)</span></div><div class="scroll"><svg viewBox="-310 0 1156 548" role="img" aria-label="Üst yüz, parça tarafı"><rect x="132" y="48" width="592" height="448" rx="10" fill="#c18d55" stroke="#6b4521" stroke-width="2"/><rect x="140" y="56" width="576" height="432" fill="url(#pbHole)"/><text x="152" y="42" text-anchor="middle" class="pg">1</text><text x="176" y="42" text-anchor="middle" class="pg">2</text><text x="200" y="42" text-anchor="middle" class="pg">3</text><text x="224" y="42" text-anchor="middle" class="pg">4</text><text x="248" y="42" text-anchor="middle" class="pg">5</text><text x="272" y="42" text-anchor="middle" class="pg">6</text><text x="296" y="42" text-anchor="middle" class="pg">7</text><text x="320" y="42" text-anchor="middle" class="pg">8</text><text x="344" y="42" text-anchor="middle" class="pg">9</text><text x="368" y="42" text-anchor="middle" class="pg">10</text><text x="392" y="42" text-anchor="middle" class="pg">11</text><text x="416" y="42" text-anchor="middle" class="pg">12</text><text x="440" y="42" text-anchor="middle" class="pg">13</text><text x="464" y="42" text-anchor="middle" class="pg">14</text><text x="488" y="42" text-anchor="middle" class="pg">15</text><text x="512" y="42" text-anchor="middle" class="pg">16</text><text x="536" y="42" text-anchor="middle" class="pg">17</text><text x="560" y="42" text-anchor="middle" class="pg">18</text><text x="584" y="42" text-anchor="middle" class="pg">19</text><text x="608" y="42" text-anchor="middle" class="pg">20</text><text x="632" y="42" text-anchor="middle" class="pg">21</text><text x="656" y="42" text-anchor="middle" class="pg">22</text><text x="680" y="42" text-anchor="middle" class="pg">23</text><text x="704" y="42" text-anchor="middle" class="pg">24</text><text x="126" y="72" text-anchor="middle" class="pg">A</text><text x="730" y="72" text-anchor="middle" class="pg">A</text><text x="126" y="96" text-anchor="middle" class="pg">B</text><text x="730" y="96" text-anchor="middle" class="pg">B</text><text x="126" y="120" text-anchor="middle" class="pg">C</text><text x="730" y="120" text-anchor="middle" class="pg">C</text><text x="126" y="144" text-anchor="middle" class="pg">D</text><text x="730" y="144" text-anchor="middle" class="pg">D</text><text x="126" y="168" text-anchor="middle" class="pg">E</text><text x="730" y="168" text-anchor="middle" class="pg">E</text><text x="126" y="192" text-anchor="middle" class="pg">F</text><text x="730" y="192" text-anchor="middle" class="pg">F</text><text x="126" y="216" text-anchor="middle" class="pg">G</text><text x="730" y="216" text-anchor="middle" class="pg">G</text><text x="126" y="240" text-anchor="middle" class="pg">H</text><text x="730" y="240" text-anchor="middle" class="pg">H</text><text x="126" y="264" text-anchor="middle" class="pg">I</text><text x="730" y="264" text-anchor="middle" class="pg">I</text><text x="126" y="288" text-anchor="middle" class="pg">J</text><text x="730" y="288" text-anchor="middle" class="pg">J</text><text x="126" y="312" text-anchor="middle" class="pg">K</text><text x="730" y="312" text-anchor="middle" class="pg">K</text><text x="126" y="336" text-anchor="middle" class="pg">L</text><text x="730" y="336" text-anchor="middle" class="pg">L</text><text x="126" y="360" text-anchor="middle" class="pg">M</text><text x="730" y="360" text-anchor="middle" class="pg">M</text><text x="126" y="384" text-anchor="middle" class="pg">N</text><text x="730" y="384" text-anchor="middle" class="pg">N</text><text x="126" y="408" text-anchor="middle" class="pg">O</text><text x="730" y="408" text-anchor="middle" class="pg">O</text><text x="126" y="432" text-anchor="middle" class="pg">P</text><text x="730" y="432" text-anchor="middle" class="pg">P</text><text x="126" y="456" text-anchor="middle" class="pg">Q</text><text x="730" y="456" text-anchor="middle" class="pg">Q</text><text x="126" y="480" text-anchor="middle" class="pg">R</text><text x="730" y="480" text-anchor="middle" class="pg">R</text><polyline points="680,116 608,116" class="pdash redd"/><polyline points="512,116 512,164 440,164 440,332" class="pdash redd"/><polyline points="440,212 464,212" class="pdash redd"/><polyline points="512,140 584,140" class="pdash redd"/><polyline points="464,236 680,236" class="pdash yeld"/><polyline points="296,212 344,212 344,236 416,236 416,284 392,284 392,332" class="pdash orgd"/><polyline points="368,308 392,308" class="pdash orgd"/><polyline points="464,260 488,260 488,452" class="pdash blkd"/><polyline points="296,236 272,236 272,452" class="pdash blkd"/><polyline points="272,452 680,452" class="pdash blkd"/><polyline points="680,428 680,452" class="pdash blkd"/><polyline points="368,356 368,452" class="pdash blkd"/><polyline points="416,332 416,452" class="pdash blkd"/><polyline points="296,260 392,260" class="pdash blud"/><polyline points="296,188 392,188" class="pdash grnd"/><path d="M680 116H746" class="red o"/><path d="M680 116H746" class="red c"/><text x="754" y="120" text-anchor="start" class="pin">OBD 16 · +12V</text><path d="M680 236H746" class="yel o"/><path d="M680 236H746" class="yel c"/><text x="754" y="240" text-anchor="start" class="pin">OBD 7 · K</text><path d="M680 428H746" class="blk o"/><path d="M680 428H746" class="blk c"/><text x="754" y="432" text-anchor="start" class="pin">OBD 4 · GND</text><path d="M680 452H746" class="blk o"/><path d="M680 452H746" class="blk c"/><text x="754" y="456" text-anchor="start" class="pin">OBD 5 · GND</text><!-- Waveshare ESP32-S3-Touch-LCD-2.1 plaketin dışında: 4 pinli UART başlığından J2'ye 4 telli kablo --><polyline points="152,188 200,188" class="pdash grnd"/><polyline points="152,212 200,212" class="pdash purd"/><polyline points="152,236 200,236" class="pdash blkd"/><polyline points="152,260 200,260" class="pdash blud"/><g><rect x="-130" y="166" width="74" height="116" rx="8" fill="#202326" stroke="#000" stroke-width="1.5"/><circle cx="-200" cy="224" r="100" fill="#202326" stroke="#000" stroke-width="1.5"/><circle cx="-200" cy="224" r="76" fill="url(#gScr)" stroke="#55585e"/><path d="M-240 264A57 57 0 1 1 -160 264" fill="none" stroke="#3a3f47" stroke-width="7" stroke-linecap="round"/><path d="M-240 264A57 57 0 0 1 -200 167" fill="none" stroke="#e7a33a" stroke-width="7" stroke-linecap="round"/><text x="-200" y="231" text-anchor="middle" style="font:700 20px var(--mono);fill:#f2f5f8">1450</text><text x="-200" y="248" text-anchor="middle" class="silk" style="font-size:8px;fill:#9aa1ab">RPM</text><rect x="-81" y="176" width="22" height="96" rx="2" fill="#111" stroke="#000"/><g fill="url(#gGold)" stroke="#7a5a12"><rect x="-75" y="183" width="10" height="10" rx="2"/><rect x="-75" y="207" width="10" height="10" rx="2"/><rect x="-75" y="231" width="10" height="10" rx="2"/><rect x="-75" y="255" width="10" height="10" rx="2"/></g><g class="silk" style="font-size:8px" text-anchor="end"><text x="-86" y="191">GND</text><text x="-86" y="215">3V3</text><text x="-86" y="239" style="fill:#ffd84d;font-weight:700">TXD</text><text x="-86" y="263" style="fill:#ffd84d;font-weight:700">RXD</text></g><text x="-200" y="352" text-anchor="middle" class="pbs" style="fill:#23262b;stroke:none">Waveshare ESP32-S3-Touch-LCD-2.1</text><text x="-200" y="368" text-anchor="middle" class="pbs" style="fill:#5d636b;stroke:none">UART başlığı · torpidoda, kablo kısa</text></g><path d="M-70 236C20 236 60 188 152 188" class="grn o"/><path d="M-70 236C20 236 60 188 152 188" class="grn c"/><path d="M-70 236C20 236 60 188 152 188" class="h"/><path d="M-70 212H152" class="pur o"/><path d="M-70 212H152" class="pur c"/><path d="M-70 212H152" class="h"/><path d="M-70 188C20 188 60 236 152 236" class="blk o"/><path d="M-70 188C20 188 60 236 152 236" class="blk c"/><path d="M-70 188C20 188 60 236 152 236" class="h"/><path d="M-70 260H152" class="blu o"/><path d="M-70 260H152" class="blu c"/><path d="M-70 260H152" class="h"/><rect x="141" y="177" width="22" height="94" rx="2" fill="#111" stroke="#000"/><g fill="url(#gGold)" stroke="#7a5a12"><rect x="147" y="183" width="10" height="10" rx="2"/><rect x="147" y="207" width="10" height="10" rx="2"/><rect x="147" y="231" width="10" height="10" rx="2"/><rect x="147" y="255" width="10" height="10" rx="2"/></g><text x="152" y="171" text-anchor="middle" class="pbl">J2</text><g class="pbp" text-anchor="end"><text x="130" y="182">RX</text><text x="130" y="206">3V3</text><text x="130" y="230">GND</text><text x="130" y="254">TX</text></g><text x="40" y="150" text-anchor="middle" class="pin">J2 · GND 3V3 TX RX</text><text x="40" y="300" text-anchor="middle" class="pin" style="fill:#b4472a">TXD → RX · RXD → TX</text><rect x="184" y="148" width="128" height="152" rx="4" fill="url(#gPcb)" stroke="#0f2f57"/><circle cx="296" cy="164" r="5" fill="url(#gGold)" stroke="#7a5a12"/><circle cx="200" cy="164" r="5" fill="url(#gGold)" stroke="#7a5a12"/><text x="286" y="167.5" text-anchor="end" class="silk">HV1</text><text x="210" y="167.5" class="silk">LV1</text><circle cx="296" cy="188" r="5" fill="url(#gGold)" stroke="#7a5a12"/><circle cx="200" cy="188" r="5" fill="url(#gGold)" stroke="#7a5a12"/><text x="286" y="191.5" text-anchor="end" class="silk">HV2</text><text x="210" y="191.5" class="silk">LV2</text><circle cx="296" cy="212" r="5" fill="url(#gGold)" stroke="#7a5a12"/><circle cx="200" cy="212" r="5" fill="url(#gGold)" stroke="#7a5a12"/><text x="286" y="215.5" text-anchor="end" class="silk">HV</text><text x="210" y="215.5" class="silk">LV</text><circle cx="296" cy="236" r="5" fill="url(#gGold)" stroke="#7a5a12"/><circle cx="200" cy="236" r="5" fill="url(#gGold)" stroke="#7a5a12"/><text x="286" y="239.5" text-anchor="end" class="silk">GND</text><text x="210" y="239.5" class="silk">GND</text><circle cx="296" cy="260" r="5" fill="url(#gGold)" stroke="#7a5a12"/><circle cx="200" cy="260" r="5" fill="url(#gGold)" stroke="#7a5a12"/><text x="286" y="263.5" text-anchor="end" class="silk">HV3</text><text x="210" y="263.5" class="silk">LV3</text><circle cx="296" cy="284" r="5" fill="url(#gGold)" stroke="#7a5a12"/><circle cx="200" cy="284" r="5" fill="url(#gGold)" stroke="#7a5a12"/><text x="286" y="287.5" text-anchor="end" class="silk">HV4</text><text x="210" y="287.5" class="silk">LV4</text><text x="248" y="318" text-anchor="middle" class="pbl">seviye dönüştürücü</text><text x="248" y="332" text-anchor="middle" class="pbs">90° döndürülmüş · HV çipe bakar</text><rect x="376" y="170" width="104" height="108" rx="4" fill="#26282c" stroke="#000"/><path d="M421 170a7 7 0 0 0 14 0" fill="#c18d55"/><rect x="382" y="176" width="92" height="96" rx="3" fill="url(#gPcbG)" stroke="#0c3b22"/><g fill="#c9ccd1"><rect x="411" y="198" width="5" height="16"/><rect x="420" y="198" width="5" height="16"/><rect x="429" y="198" width="5" height="16"/><rect x="438" y="198" width="5" height="16"/><rect x="411" y="236" width="5" height="16"/><rect x="420" y="236" width="5" height="16"/><rect x="429" y="236" width="5" height="16"/><rect x="438" y="236" width="5" height="16"/></g><rect x="404" y="209" width="48" height="30" rx="2" fill="url(#gBlk)" stroke="#000"/><circle cx="409" cy="234" r="2" fill="#8d9097"/><circle cx="413.5" cy="259" r="2" fill="#f2f5f8"/><circle cx="392" cy="188" r="4.5" fill="url(#gGold)" stroke="#7a5a12"/><circle cx="464" cy="188" r="4.5" fill="url(#gGold)" stroke="#7a5a12"/><text x="383" y="191.5" text-anchor="end" class="pbp">1 RX</text><text x="473" y="191.5" class="pbp">8 LI</text><circle cx="392" cy="212" r="4.5" fill="url(#gGold)" stroke="#7a5a12"/><circle cx="464" cy="212" r="4.5" fill="url(#gGold)" stroke="#7a5a12"/><text x="383" y="215.5" text-anchor="end" class="pbp">2 LO</text><text x="473" y="215.5" class="pbp">7 VS</text><circle cx="392" cy="236" r="4.5" fill="url(#gGold)" stroke="#7a5a12"/><circle cx="464" cy="236" r="4.5" fill="url(#gGold)" stroke="#7a5a12"/><text x="383" y="239.5" text-anchor="end" class="pbp">3 VCC</text><text x="473" y="239.5" class="pbp">6 K</text><circle cx="392" cy="260" r="4.5" fill="url(#gGold)" stroke="#7a5a12"/><circle cx="464" cy="260" r="4.5" fill="url(#gGold)" stroke="#7a5a12"/><text x="383" y="263.5" text-anchor="end" class="pbp">4 TX</text><text x="473" y="263.5" class="pbp">5 GND</text><text x="428" y="162" text-anchor="middle" class="pbl">L9637D · çentik yukarı</text><path d="M512 116H608" class="lead"/><rect x="532" y="108" width="56" height="16" rx="7" fill="url(#gBlk)" stroke="#000"/><rect x="538" y="108" width="6" height="16" fill="#c9ccd1"/><text x="560" y="101" text-anchor="middle" class="pbl">D1 1N4005</text><path d="M536 140V236" class="lead"/><rect x="529" y="158" width="14" height="60" rx="6" fill="url(#gRes)" stroke="#7b6438"/><rect x="529" y="166" width="14" height="4" fill="#6b3d1f"/><rect x="529" y="174" width="14" height="4" fill="#111"/><rect x="529" y="182" width="14" height="4" fill="#c62828"/><rect x="529" y="212" width="14" height="3" fill="#c8a03a"/><path d="M584 140V236" class="lead"/><rect x="577" y="158" width="14" height="60" rx="6" fill="url(#gRes)" stroke="#7b6438"/><rect x="577" y="166" width="14" height="4" fill="#6b3d1f"/><rect x="577" y="174" width="14" height="4" fill="#111"/><rect x="577" y="182" width="14" height="4" fill="#c62828"/><rect x="577" y="212" width="14" height="3" fill="#c8a03a"/><text x="560" y="192" text-anchor="middle" class="pbl">R1 R2</text><text x="628" y="184" class="pbs">2 × 1 kΩ</text><path d="M440 308H488" class="lead"/><ellipse cx="464" cy="308" rx="11" ry="9" fill="url(#gCap)" stroke="#8a4f12"/><text x="500" y="312" class="pbl">C1</text><path d="M368 308V356" class="lead"/><ellipse cx="368" cy="332" rx="9" ry="11" fill="url(#gCap)" stroke="#8a4f12"/><text x="354" y="336" text-anchor="end" class="pbl">C2</text><path d="M382 340V332a34 20 0 0 1 68 0V340Z" fill="url(#gCyl)" stroke="#000"/><circle cx="392" cy="332" r="3.4" fill="#c4c8ce" stroke="#555"/><circle cx="416" cy="332" r="3.4" fill="#c4c8ce" stroke="#555"/><circle cx="440" cy="332" r="3.4" fill="#c4c8ce" stroke="#555"/><text x="392" y="354" text-anchor="middle" class="pbs">OUT</text><text x="416" y="354" text-anchor="middle" class="pbs">GND</text><text x="440" y="354" text-anchor="middle" class="pbs">IN</text><text x="416" y="394" text-anchor="middle" class="pbl">U1 78L05 · düz yüz aşağı</text></svg></div></div>
+  <div><div class="pbcap">Alt yüz · lehim tarafı <span>(aynalı)</span></div><div class="scroll"><svg viewBox="0 0 846 548" role="img" aria-label="Alt yüz, lehim tarafı, aynalı"><rect x="132" y="48" width="592" height="448" rx="10" fill="#a87440" stroke="#6b4521" stroke-width="2"/><rect x="140" y="56" width="576" height="432" fill="url(#pbPad)"/><text x="704" y="42" text-anchor="middle" class="pg">1</text><text x="680" y="42" text-anchor="middle" class="pg">2</text><text x="656" y="42" text-anchor="middle" class="pg">3</text><text x="632" y="42" text-anchor="middle" class="pg">4</text><text x="608" y="42" text-anchor="middle" class="pg">5</text><text x="584" y="42" text-anchor="middle" class="pg">6</text><text x="560" y="42" text-anchor="middle" class="pg">7</text><text x="536" y="42" text-anchor="middle" class="pg">8</text><text x="512" y="42" text-anchor="middle" class="pg">9</text><text x="488" y="42" text-anchor="middle" class="pg">10</text><text x="464" y="42" text-anchor="middle" class="pg">11</text><text x="440" y="42" text-anchor="middle" class="pg">12</text><text x="416" y="42" text-anchor="middle" class="pg">13</text><text x="392" y="42" text-anchor="middle" class="pg">14</text><text x="368" y="42" text-anchor="middle" class="pg">15</text><text x="344" y="42" text-anchor="middle" class="pg">16</text><text x="320" y="42" text-anchor="middle" class="pg">17</text><text x="296" y="42" text-anchor="middle" class="pg">18</text><text x="272" y="42" text-anchor="middle" class="pg">19</text><text x="248" y="42" text-anchor="middle" class="pg">20</text><text x="224" y="42" text-anchor="middle" class="pg">21</text><text x="200" y="42" text-anchor="middle" class="pg">22</text><text x="176" y="42" text-anchor="middle" class="pg">23</text><text x="152" y="42" text-anchor="middle" class="pg">24</text><text x="126" y="72" text-anchor="middle" class="pg">A</text><text x="730" y="72" text-anchor="middle" class="pg">A</text><text x="126" y="96" text-anchor="middle" class="pg">B</text><text x="730" y="96" text-anchor="middle" class="pg">B</text><text x="126" y="120" text-anchor="middle" class="pg">C</text><text x="730" y="120" text-anchor="middle" class="pg">C</text><text x="126" y="144" text-anchor="middle" class="pg">D</text><text x="730" y="144" text-anchor="middle" class="pg">D</text><text x="126" y="168" text-anchor="middle" class="pg">E</text><text x="730" y="168" text-anchor="middle" class="pg">E</text><text x="126" y="192" text-anchor="middle" class="pg">F</text><text x="730" y="192" text-anchor="middle" class="pg">F</text><text x="126" y="216" text-anchor="middle" class="pg">G</text><text x="730" y="216" text-anchor="middle" class="pg">G</text><text x="126" y="240" text-anchor="middle" class="pg">H</text><text x="730" y="240" text-anchor="middle" class="pg">H</text><text x="126" y="264" text-anchor="middle" class="pg">I</text><text x="730" y="264" text-anchor="middle" class="pg">I</text><text x="126" y="288" text-anchor="middle" class="pg">J</text><text x="730" y="288" text-anchor="middle" class="pg">J</text><text x="126" y="312" text-anchor="middle" class="pg">K</text><text x="730" y="312" text-anchor="middle" class="pg">K</text><text x="126" y="336" text-anchor="middle" class="pg">L</text><text x="730" y="336" text-anchor="middle" class="pg">L</text><text x="126" y="360" text-anchor="middle" class="pg">M</text><text x="730" y="360" text-anchor="middle" class="pg">M</text><text x="126" y="384" text-anchor="middle" class="pg">N</text><text x="730" y="384" text-anchor="middle" class="pg">N</text><text x="126" y="408" text-anchor="middle" class="pg">O</text><text x="730" y="408" text-anchor="middle" class="pg">O</text><text x="126" y="432" text-anchor="middle" class="pg">P</text><text x="730" y="432" text-anchor="middle" class="pg">P</text><text x="126" y="456" text-anchor="middle" class="pg">Q</text><text x="730" y="456" text-anchor="middle" class="pg">Q</text><text x="126" y="480" text-anchor="middle" class="pg">R</text><text x="730" y="480" text-anchor="middle" class="pg">R</text><polyline points="176,116 248,116" class="red o"/><polyline points="176,116 248,116" class="red c"/><polyline points="176,116 248,116" class="h"/><polyline points="344,116 344,164 416,164 416,332" class="red o"/><polyline points="344,116 344,164 416,164 416,332" class="red c"/><polyline points="344,116 344,164 416,164 416,332" class="h"/><polyline points="416,212 392,212" class="red o"/><polyline points="416,212 392,212" class="red c"/><polyline points="416,212 392,212" class="h"/><polyline points="344,140 272,140" class="red o"/><polyline points="344,140 272,140" class="red c"/><polyline points="344,140 272,140" class="h"/><polyline points="392,236 176,236" class="yel o"/><polyline points="392,236 176,236" class="yel c"/><polyline points="392,236 176,236" class="h"/><polyline points="560,212 512,212 512,236 440,236 440,284 464,284 464,332" class="org o"/><polyline points="560,212 512,212 512,236 440,236 440,284 464,284 464,332" class="org c"/><polyline points="560,212 512,212 512,236 440,236 440,284 464,284 464,332" class="h"/><polyline points="488,308 464,308" class="org o"/><polyline points="488,308 464,308" class="org c"/><polyline points="488,308 464,308" class="h"/><polyline points="392,260 368,260 368,452" class="blk o"/><polyline points="392,260 368,260 368,452" class="blk c"/><polyline points="392,260 368,260 368,452" class="h"/><polyline points="560,236 584,236 584,452" class="blk o"/><polyline points="560,236 584,236 584,452" class="blk c"/><polyline points="560,236 584,236 584,452" class="h"/><polyline points="584,452 176,452" class="blk o"/><polyline points="584,452 176,452" class="blk c"/><polyline points="584,452 176,452" class="h"/><polyline points="176,428 176,452" class="blk o"/><polyline points="176,428 176,452" class="blk c"/><polyline points="176,428 176,452" class="h"/><polyline points="488,356 488,452" class="blk o"/><polyline points="488,356 488,452" class="blk c"/><polyline points="488,356 488,452" class="h"/><polyline points="440,332 440,452" class="blk o"/><polyline points="440,332 440,452" class="blk c"/><polyline points="440,332 440,452" class="h"/><polyline points="560,260 464,260" class="blu o"/><polyline points="560,260 464,260" class="blu c"/><polyline points="560,260 464,260" class="h"/><polyline points="560,188 464,188" class="grn o"/><polyline points="560,188 464,188" class="grn c"/><polyline points="560,188 464,188" class="h"/><circle cx="464" cy="188" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="464" cy="212" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="464" cy="236" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="464" cy="260" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="392" cy="260" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="392" cy="236" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="392" cy="212" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="392" cy="188" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="560" cy="164" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="560" cy="188" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="560" cy="212" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="560" cy="236" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="560" cy="260" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="560" cy="284" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="656" cy="164" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="656" cy="188" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="656" cy="212" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="656" cy="236" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="656" cy="260" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="656" cy="284" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="248" cy="116" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="344" cy="116" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="320" cy="140" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="320" cy="236" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="272" cy="140" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="272" cy="236" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="416" cy="308" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="368" cy="308" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="488" cy="308" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="488" cy="356" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="464" cy="332" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="440" cy="332" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="416" cy="332" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="176" cy="116" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="176" cy="236" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="176" cy="428" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="176" cy="452" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><rect x="378" y="174" width="100" height="100" rx="4" class="pgh"/><text x="428" y="290" text-anchor="middle" class="pbl">L9637D</text><rect x="546" y="150" width="124" height="148" rx="4" class="pgh"/><text x="608" y="314" text-anchor="middle" class="pbl">seviye dön.</text><text x="440" y="386" text-anchor="middle" class="pbl">78L05</text><path d="M176 116H110" class="red o"/><path d="M176 116H110" class="red c"/><text x="102" y="120" text-anchor="end" class="pin">OBD 16 · +12V</text><path d="M176 236H110" class="yel o"/><path d="M176 236H110" class="yel c"/><text x="102" y="240" text-anchor="end" class="pin">OBD 7 · K</text><path d="M176 428H110" class="blk o"/><path d="M176 428H110" class="blk c"/><text x="102" y="432" text-anchor="end" class="pin">OBD 4 · GND</text><path d="M176 452H110" class="blk o"/><path d="M176 452H110" class="blk c"/><text x="102" y="456" text-anchor="end" class="pin">OBD 5 · GND</text><polyline points="656,188 704,188" class="grn o"/><polyline points="656,188 704,188" class="grn c"/><polyline points="656,188 704,188" class="h"/><polyline points="656,212 704,212" class="pur o"/><polyline points="656,212 704,212" class="pur c"/><polyline points="656,212 704,212" class="h"/><polyline points="656,236 704,236" class="blk o"/><polyline points="656,236 704,236" class="blk c"/><polyline points="656,236 704,236" class="h"/><polyline points="656,260 704,260" class="blu o"/><polyline points="656,260 704,260" class="blu c"/><polyline points="656,260 704,260" class="h"/><circle cx="704" cy="188" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="704" cy="212" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="704" cy="236" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><circle cx="704" cy="260" r="5.2" fill="#d4d8dd" stroke="#6f747b" stroke-width="1.2"/><rect x="692" y="176" width="24" height="96" rx="4" class="pgh"/><text x="704" y="290" text-anchor="middle" class="pbl">J2</text><text x="754" y="192" text-anchor="start" class="pin">J2 · RX</text><text x="754" y="216" text-anchor="start" class="pin">J2 · 3V3</text><text x="754" y="240" text-anchor="start" class="pin">J2 · GND</text><text x="754" y="264" text-anchor="start" class="pin">J2 · TX</text></svg></div></div>
+</div>
+</section>
+
+<div class="grid">
+  <section class="card">
+    <h2>Plaket montaj sırası</h2>
+    <ol>
+      <li>DIP soketi <b>F11–I11 / F14–I14</b> deliklerine, çentiği yukarı (A satırına) bakacak şekilde tak. L9637D adaptörü en son, kare delik 1 F11'e gelecek şekilde sokete takılır. Fotoğraftaki duruşun aynısıdır: delik 1 sol üstte, entegre yazısı okunur.</li>
+      <li>Alt yüzdeki köprüleri yap. Sokete ait <b>E13–L13</b> (+12V) ve <b>H12–J12</b> (5V) köprüleri soketin altında kalır: soketi lehimlemeden önce kontrol et.</li>
+      <li>D1'i C16–C20 arasına yatır. Gri bant (katot) <b>C16</b> tarafında olmalı.</li>
+      <li>R1'i D17–H17, R2'yi D19–H19 arasına yatır. C1'i K13–K15, C2'yi K10–M10 arasına tak.</li>
+      <li>U1 78L05: OUT L11, GND L12, IN L13. Üzerinde yazı olan düz yüz alt kenara (R satırına) bakar.</li>
+      <li>Seviye dönüştürücüyü yazıları okunur tut (HV sırası üstte, HV1 solda), sonra <b>saat yönünde 90°</b> çevir: HV sırası sağa, <b>E7–J7</b> sütununa gelir. Yukarıdan aşağı <b>HV1, HV2, HV, GND, HV3, HV4</b> okunmalı. LV sırası, modülün ölçüsüne göre 3. sütun civarına düşer.</li>
+      <li>OBD tellerini C23 (16), H23 (7), P23 (4), Q23 (5) deliklerinden üstten geçirip alttan lehimle. Ekran kablosu için 4 pinli erkek header'ı (<b>J2 · GND 3V3 TX RX</b>) <b>F1–I1</b> deliklerine tak ve alttan düz köprüyle LV pinlerine bağla: F1→F3 (LV2, RX), G1→G3 (LV, 3V3), H1→H3 (GND), I1→I3 (LV3, TX). LV sırası 3. sütuna düşmediyse köprüyü o sütuna uzat. LV1 ve LV4 boş kalır.</li>
+      <li>Ekran kartının UART başlığına uyan 4 pinli kablonun diğer ucunu J2'ye bağla: başlık <b>GND</b> → H1, <b>3V3</b> → G1, <b>TXD</b> (GPIO43) → F1 (RX), <b>RXD</b> (GPIO44) → I1 (TX). Yazılar çaprazdır: başlığın RXD'si bizim TX'imiz, TXD'si bizim RX'imizdir.</li>
+      <li>Tellere kablo bağı ya da sıcak silikonla gerilim tahliyesi yap. Köprüler tek kanallı; komşu deliklere taşan lehimi kazı.</li>
+    </ol>
+    <p class="note">Plakette TX hattı HV3/LV3, RX hattı HV2/LV2 kanalını kullanır (breadboard'da TX HV1/LV1). Kanallar birbirinin aynısıdır. Ölçüm bölümündeki HV1 noktası plakette I7 (HV3), HV2 noktası F7 (HV2) olur.</p>
+  </section>
+
+  <section class="card">
+    <h2>Alt yüz köprüleri</h2>
+    <table><thead><tr><th>Hat</th><th>Delikler</th></tr></thead><tbody><tr><td>+12V (diyot öncesi)</td><td class="v pbw">C23→C20</td></tr><tr><td>+12V (diyot sonrası)</td><td class="v pbw">C16→E16→E13→L13<br>G13→G14<br>D16→D19</td></tr><tr><td>K-Line</td><td class="v pbw">H14→H23</td></tr><tr><td>5V</td><td class="v pbw">G7→G9→H9→H12→J12→J11→L11<br>K10→K11</td></tr><tr><td>GND</td><td class="v pbw">I14→I15→Q15<br>H7→H6→Q6<br>Q6→Q23<br>P23→Q23<br>M10→Q10<br>L12→Q12</td></tr><tr><td>TX (ESP → L9637D)</td><td class="v pbw">I7→I11</td></tr><tr><td>RX (L9637D → ESP)</td><td class="v pbw">F7→F11</td></tr><tr><td>J2 (ekran kablosu)</td><td class="v pbw">F1→F3 (RX, LV2)<br>G1→G3 (3V3, LV)<br>H1→H3 (GND)<br>I1→I3 (TX, LV3)</td></tr></tbody></table>
+    <p class="note">L9637D pin 2 (G11, LO) ve pin 8 (F14, LI) boş kalır. G10 ve H8 boş kalır: 5V köprüsü G9'dan aşağı iner, GND'deki H7'ye değmez. OBD pin 4 ile pin 5 plakette birleşir.</p>
+  </section>
+
+  <section class="card">
+    <h2>Takmadan önce süreklilik testi</h2>
+    <table>
+      <thead><tr><th>Ölçüm</th><th>Beklenen</th></tr></thead>
+      <tbody>
+        <tr><td>C23 (+12V) ↔ G14 (VS), diyot modunda</td><td class="v">≈ 0.5–0.6 V</td></tr>
+        <tr><td>H23 (K) ↔ G14 (VS)</td><td class="v">≈ 500 Ω</td></tr>
+        <tr><td>H11 (VCC) ↔ G7 (HV)</td><td class="v">0 Ω (bip)</td></tr>
+        <tr><td>H7 (GND) ↔ Q23 (GND)</td><td class="v">0 Ω (bip)</td></tr>
+        <tr><td>G7 (HV) ↔ H7 (GND)</td><td class="v">kısa yok</td></tr>
+        <tr><td>I14 (GND) ↔ Q23 (GND)</td><td class="v">0 Ω (bip)</td></tr>
+        <tr><td>G14 (VS) ↔ H14 (K) ↔ I14 (GND)</td><td class="v">birbirine kısa yok</td></tr>
+        <tr><td>L11 / L12 / L13 (78L05 bacakları)</td><td class="v">kısa yok</td></tr>
+        <tr><td>J2: G1 (3V3) ↔ H1 (GND), F1 ↔ I1</td><td class="v">kısa yok</td></tr>
+      </tbody>
+    </table>
+  </section>
+</div>
+<!-- perfboard:end -->
+
+<!-- breadboard:start -->
+<section class="figure pb" aria-label="Breadboard yerleşimi">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <pattern id="bbHole" x="198" y="184" width="24" height="24" patternUnits="userSpaceOnUse"><rect x="8.5" y="8.5" width="7" height="7" rx="1.5" fill="#3b3d40"/></pattern>
+</defs></svg>
+<div class="pbhead"><h2>Breadboard yerleşimi · 830 delik, 63 sütun</h2>
+<p class="note">Senin breadboard'un: 63 sütun, raylar ortadaki birleştirme klipsinde ikiye ayrık. Devre tamamen sol yarıda (1–30. sütun) kurulur, sağ yarı boş kalır. Ekran kartı breadboard'a takılmaz: UART başlığından gelen 4 tel <b>a5–a8</b> deliklerine iner. Delikler satır harfi (a–j) ve sütun numarasıyla adlandırılır. Her sütunda a–e ve f–j beşlileri kendi içinde bağlıdır. Üst raylar +12V ve GND, alt raylar +5V ve GND taşır.</p></div>
+<div class="scroll"><svg viewBox="0 -110 1890 705" role="img" aria-label="Breadboard yerleşimi" style="min-width:1300px"><rect x="168" y="110" width="1572" height="440" rx="10" fill="#f6f5f0" stroke="#c4c3bb" stroke-width="2"/><rect x="168" y="306" width="1572" height="44" fill="#e3e2db"/><path d="M168 306H1740M168 350H1740" stroke="#cfcec6"/><path d="M190 117H938M970 117H1706" stroke="#2f6fd6" stroke-width="2"/><path d="M190 167H938M970 167H1706" stroke="#d62828" stroke-width="2"/><path d="M190 489H938M970 489H1706" stroke="#d62828" stroke-width="2"/><path d="M190 539H938M970 539H1706" stroke="#2f6fd6" stroke-width="2"/><text x="182" y="135" text-anchor="middle" class="bbr" fill="#2f6fd6">−</text><text x="1714" y="135" text-anchor="middle" class="bbr" fill="#2f6fd6">−</text><text x="182" y="159" text-anchor="middle" class="bbr" fill="#d62828">+</text><text x="1714" y="159" text-anchor="middle" class="bbr" fill="#d62828">+</text><text x="182" y="507" text-anchor="middle" class="bbr" fill="#d62828">+</text><text x="1714" y="507" text-anchor="middle" class="bbr" fill="#d62828">+</text><text x="182" y="531" text-anchor="middle" class="bbr" fill="#2f6fd6">−</text><text x="1714" y="531" text-anchor="middle" class="bbr" fill="#2f6fd6">−</text><rect x="945" y="104" width="18" height="16" rx="2" fill="#fbfaf6" stroke="#b9b8b0"/><rect x="945" y="540" width="18" height="16" rx="2" fill="#fbfaf6" stroke="#b9b8b0"/><path d="M954 116V168M954 488V544" stroke="#b4472a" stroke-width="2" stroke-dasharray="4 3"/><text x="954" y="580" text-anchor="middle" class="pbb" style="fill:#b4472a">raylar burada ayrık (32. sütun)</text><rect x="230.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="254.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="278.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="302.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="326.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="374.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="398.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="422.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="446.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="470.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="518.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="542.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="566.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="590.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="614.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="662.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="686.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="710.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="734.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="758.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="806.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="830.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="854.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="878.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="902.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="974.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="998.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1022.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1046.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1094.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1118.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1142.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1166.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1190.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1238.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1262.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1286.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1310.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1334.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1382.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1406.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1430.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1454.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1478.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1526.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1550.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1574.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1598.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1622.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1670.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1694.5" y="126.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="230.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="254.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="278.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="302.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="326.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="374.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="398.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="422.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="446.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="470.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="518.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="542.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="566.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="590.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="614.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="662.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="686.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="710.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="734.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="758.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="806.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="830.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="854.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="878.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="902.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="974.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="998.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1022.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1046.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1094.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1118.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1142.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1166.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1190.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1238.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1262.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1286.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1310.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1334.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1382.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1406.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1430.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1454.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1478.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1526.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1550.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1574.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1598.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1622.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1670.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1694.5" y="150.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="230.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="254.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="278.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="302.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="326.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="374.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="398.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="422.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="446.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="470.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="518.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="542.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="566.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="590.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="614.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="662.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="686.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="710.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="734.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="758.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="806.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="830.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="854.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="878.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="902.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="974.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="998.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1022.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1046.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1094.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1118.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1142.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1166.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1190.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1238.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1262.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1286.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1310.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1334.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1382.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1406.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1430.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1454.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1478.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1526.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1550.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1574.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1598.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1622.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1670.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1694.5" y="498.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="230.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="254.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="278.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="302.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="326.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="374.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="398.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="422.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="446.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="470.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="518.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="542.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="566.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="590.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="614.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="662.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="686.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="710.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="734.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="758.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="806.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="830.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="854.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="878.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="902.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="974.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="998.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1022.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1046.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1094.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1118.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1142.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1166.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1190.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1238.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1262.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1286.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1310.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1334.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1382.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1406.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1430.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1454.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1478.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1526.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1550.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1574.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1598.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1622.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1670.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="1694.5" y="522.5" width="7" height="7" rx="1.5" fill="#3b3d40"/><rect x="198" y="184" width="1512" height="120" fill="url(#bbHole)"/><rect x="198" y="352" width="1512" height="120" fill="url(#bbHole)"/><text x="160" y="134" text-anchor="end" class="pin">GND</text><text x="160" y="158" text-anchor="end" class="pin">+12V · D1 sonrası</text><text x="160" y="506" text-anchor="end" class="pin">+5V · 78L05</text><text x="160" y="530" text-anchor="end" class="pin">GND</text><polyline points="234,130 234,526" class="blk o"/><polyline points="234,130 234,526" class="blk c"/><polyline points="234,130 234,526" class="h"/><rect x="230" y="126" width="8" height="8" rx="2" fill="#1b1d20"/><rect x="230" y="522" width="8" height="8" rx="2" fill="#1b1d20"/><polyline points="522,196 522,154" class="red o"/><polyline points="522,196 522,154" class="red c"/><polyline points="522,196 522,154" class="h"/><rect x="518" y="192" width="8" height="8" rx="2" fill="#1b1d20"/><rect x="518" y="150" width="8" height="8" rx="2" fill="#1b1d20"/><polyline points="570,196 570,130" class="blk o"/><polyline points="570,196 570,130" class="blk c"/><polyline points="570,196 570,130" class="h"/><rect x="566" y="192" width="8" height="8" rx="2" fill="#1b1d20"/><rect x="566" y="126" width="8" height="8" rx="2" fill="#1b1d20"/><polyline points="738,196 738,154" class="red o"/><polyline points="738,196 738,154" class="red c"/><polyline points="738,196 738,154" class="h"/><rect x="734" y="192" width="8" height="8" rx="2" fill="#1b1d20"/><rect x="734" y="150" width="8" height="8" rx="2" fill="#1b1d20"/><polyline points="738,292 738,364" class="red o"/><polyline points="738,292 738,364" class="red c"/><polyline points="738,292 738,364" class="h"/><rect x="734" y="288" width="8" height="8" rx="2" fill="#1b1d20"/><rect x="734" y="360" width="8" height="8" rx="2" fill="#1b1d20"/><polyline points="546,196 618,268" class="yel o"/><polyline points="546,196 618,268" class="yel c"/><polyline points="546,196 618,268" class="h"/><rect x="542" y="192" width="8" height="8" rx="2" fill="#1b1d20"/><rect x="614" y="264" width="8" height="8" rx="2" fill="#1b1d20"/><polyline points="306,460 306,526" class="blk o"/><polyline points="306,460 306,526" class="blk c"/><polyline points="306,460 306,526" class="h"/><rect x="302" y="456" width="8" height="8" rx="2" fill="#1b1d20"/><rect x="302" y="522" width="8" height="8" rx="2" fill="#1b1d20"/><polyline points="330,460 330,502" class="org o"/><polyline points="330,460 330,502" class="org c"/><polyline points="330,460 330,502" class="h"/><rect x="326" y="456" width="8" height="8" rx="2" fill="#1b1d20"/><rect x="326" y="498" width="8" height="8" rx="2" fill="#1b1d20"/><polyline points="546,460 546,502" class="org o"/><polyline points="546,460 546,502" class="org c"/><polyline points="546,460 546,502" class="h"/><rect x="542" y="456" width="8" height="8" rx="2" fill="#1b1d20"/><rect x="542" y="498" width="8" height="8" rx="2" fill="#1b1d20"/><polyline points="690,460 690,502" class="org o"/><polyline points="690,460 690,502" class="org c"/><polyline points="690,460 690,502" class="h"/><rect x="686" y="456" width="8" height="8" rx="2" fill="#1b1d20"/><rect x="686" y="498" width="8" height="8" rx="2" fill="#1b1d20"/><polyline points="714,460 714,526" class="blk o"/><polyline points="714,460 714,526" class="blk c"/><polyline points="714,460 714,526" class="h"/><rect x="710" y="456" width="8" height="8" rx="2" fill="#1b1d20"/><rect x="710" y="522" width="8" height="8" rx="2" fill="#1b1d20"/><polyline points="354,412 366,402 486,402 498,412" class="grn o"/><polyline points="354,412 366,402 486,402 498,412" class="grn c"/><polyline points="354,412 366,402 486,402 498,412" class="h"/><rect x="350" y="408" width="8" height="8" rx="2" fill="#1b1d20"/><rect x="494" y="408" width="8" height="8" rx="2" fill="#1b1d20"/><polyline points="378,436 390,426 558,426 570,436" class="blu o"/><polyline points="378,436 390,426 558,426 570,436" class="blu c"/><polyline points="378,436 390,426 558,426 570,436" class="h"/><rect x="374" y="432" width="8" height="8" rx="2" fill="#1b1d20"/><rect x="566" y="432" width="8" height="8" rx="2" fill="#1b1d20"/><!-- Waveshare ESP32-S3-Touch-LCD-2.1 breadboard dışında: UART başlığından 4 tel a5–a8'e iner (GND, 3V3, TXD, RXD) --><path d="M256 -23H200" fill="none" stroke="#1e1f22" stroke-width="9" stroke-linecap="round"/><path d="M256 -23H200" fill="none" stroke="#5b5f66" stroke-width="5" stroke-linecap="round"/><text x="192" y="-19" text-anchor="end" class="pin">araç USB şarj aleti</text><g><rect x="290" y="36" width="104" height="34" rx="6" fill="#202326" stroke="#000" stroke-width="1.5"/><rect x="256" y="-34" width="14" height="22" rx="4" fill="#9ca1a8" stroke="#555"/><rect x="414" y="-34" width="14" height="22" rx="4" fill="#9ca1a8" stroke="#555"/><circle cx="342" cy="-24" r="74" fill="#202326" stroke="#000" stroke-width="1.5"/><circle cx="342" cy="-24" r="56" fill="url(#gScr)" stroke="#55585e"/><path d="M312.3 5.7A42 42 0 1 1 371.7 5.7" fill="none" stroke="#3a3f47" stroke-width="6" stroke-linecap="round"/><path d="M312.3 5.7A42 42 0 0 1 342 -66" fill="none" stroke="#e7a33a" stroke-width="6" stroke-linecap="round"/><text x="342" y="-18" text-anchor="middle" style="font:700 16px var(--mono);fill:#f2f5f8">1450</text><text x="342" y="-5" text-anchor="middle" class="silk" style="font-size:7px;fill:#9aa1ab">RPM</text><text x="278" y="-20" text-anchor="middle" class="silk" style="font-size:7px">USB</text><text x="406" y="-20" text-anchor="middle" class="silk" style="font-size:7px">UART</text><path d="M415 -33L427 -13M427 -33L415 -13" stroke="#d62828" stroke-width="2.5" stroke-linecap="round"/><rect x="294" y="66" width="96" height="20" rx="2" fill="#111" stroke="#000"/><g fill="url(#gGold)" stroke="#7a5a12"><rect x="301" y="71" width="10" height="10" rx="2"/><rect x="325" y="71" width="10" height="10" rx="2"/><rect x="349" y="71" width="10" height="10" rx="2"/><rect x="373" y="71" width="10" height="10" rx="2"/></g><g class="silk" style="font-size:7.5px" text-anchor="middle"><text x="306" y="62">GND</text><text x="330" y="62">3V3</text><text x="354" y="62" style="fill:#ffd84d;font-weight:700">TXD</text><text x="378" y="62" style="fill:#ffd84d;font-weight:700">RXD</text></g></g><polyline points="306,76 306,196" class="blk o"/><polyline points="306,76 306,196" class="blk c"/><polyline points="306,76 306,196" class="h"/><polyline points="330,76 330,196" class="pur o"/><polyline points="330,76 330,196" class="pur c"/><polyline points="330,76 330,196" class="h"/><polyline points="354,76 354,196" class="grn o"/><polyline points="354,76 354,196" class="grn c"/><polyline points="354,76 354,196" class="h"/><polyline points="378,76 378,196" class="blu o"/><polyline points="378,76 378,196" class="blu c"/><polyline points="378,76 378,196" class="h"/><g><text x="448" y="-82" class="pbb">Waveshare ESP32-S3-Touch-LCD-2.1 · breadboard dışında</text><g class="bbs"><text x="448" y="-64">UART başlığı → 4 tel → a5–a8 (kısa tut, TX/RX'i GND ile burgula)</text><text x="448" y="-48">GND → a5 (modül GND, d5)</text><text x="448" y="-32">3V3 → a6 (LV)</text><text x="448" y="-16">TXD (GPIO43, RX) → a7 (LV2)</text><text x="448" y="0">RXD (GPIO44, TX) → a8 (LV1)</text></g><text x="448" y="20" class="bbs" style="fill:#b4472a;font-weight:700">Yazılar çapraz: RXD bizim TX, TXD bizim RX · UART Type-C boş kalmalı</text></g><rect x="302" y="192" width="8" height="8" rx="2" fill="#1b1d20"/><rect x="326" y="192" width="8" height="8" rx="2" fill="#1b1d20"/><rect x="350" y="192" width="8" height="8" rx="2" fill="#1b1d20"/><rect x="374" y="192" width="8" height="8" rx="2" fill="#1b1d20"/><polyline points="906,130 906,96 1074,96" class="blk o"/><polyline points="906,130 906,96 1074,96" class="blk c"/><polyline points="906,130 906,96 1074,96" class="h"/><rect x="902" y="126" width="8" height="8" rx="2" fill="#1b1d20"/><text x="1082" y="100" class="pin">OBD 5 · GND</text><polyline points="882,130 882,80 1074,80" class="blk o"/><polyline points="882,130 882,80 1074,80" class="blk c"/><polyline points="882,130 882,80 1074,80" class="h"/><rect x="878" y="126" width="8" height="8" rx="2" fill="#1b1d20"/><text x="1082" y="84" class="pin">OBD 4 · GND</text><polyline points="834,196 834,64 1074,64" class="red o"/><polyline points="834,196 834,64 1074,64" class="red c"/><polyline points="834,196 834,64 1074,64" class="h"/><rect x="830" y="192" width="8" height="8" rx="2" fill="#1b1d20"/><text x="1082" y="68" class="pin">OBD 16 · +12V</text><polyline points="618,196 618,48 1074,48" class="yel o"/><polyline points="618,196 618,48 1074,48" class="yel c"/><polyline points="618,196 618,48 1074,48" class="h"/><rect x="614" y="192" width="8" height="8" rx="2" fill="#1b1d20"/><text x="1082" y="52" class="pin">OBD 7 · K</text><rect x="242" y="254" width="152" height="148" rx="4" fill="url(#gPcb)" stroke="#0f2f57"/><circle cx="258" cy="268" r="5" fill="url(#gGold)" stroke="#7a5a12"/><circle cx="258" cy="388" r="5" fill="url(#gGold)" stroke="#7a5a12"/><text x="258" y="288" text-anchor="middle" class="silk">LV4</text><text x="258" y="374" text-anchor="middle" class="silk">HV4</text><circle cx="282" cy="268" r="5" fill="url(#gGold)" stroke="#7a5a12"/><circle cx="282" cy="388" r="5" fill="url(#gGold)" stroke="#7a5a12"/><text x="282" y="288" text-anchor="middle" class="silk">LV3</text><text x="282" y="374" text-anchor="middle" class="silk">HV3</text><circle cx="306" cy="268" r="5" fill="url(#gGold)" stroke="#7a5a12"/><circle cx="306" cy="388" r="5" fill="url(#gGold)" stroke="#7a5a12"/><text x="306" y="288" text-anchor="middle" class="silk">GND</text><text x="306" y="374" text-anchor="middle" class="silk">GND</text><circle cx="330" cy="268" r="5" fill="url(#gGold)" stroke="#7a5a12"/><circle cx="330" cy="388" r="5" fill="url(#gGold)" stroke="#7a5a12"/><text x="330" y="288" text-anchor="middle" class="silk">LV</text><text x="330" y="374" text-anchor="middle" class="silk">HV</text><circle cx="354" cy="268" r="5" fill="url(#gGold)" stroke="#7a5a12"/><circle cx="354" cy="388" r="5" fill="url(#gGold)" stroke="#7a5a12"/><text x="354" y="288" text-anchor="middle" class="silk">LV2</text><text x="354" y="374" text-anchor="middle" class="silk">HV2</text><circle cx="378" cy="268" r="5" fill="url(#gGold)" stroke="#7a5a12"/><circle cx="378" cy="388" r="5" fill="url(#gGold)" stroke="#7a5a12"/><text x="378" y="288" text-anchor="middle" class="silk">LV1</text><text x="378" y="374" text-anchor="middle" class="silk">HV1</text><rect x="264" y="318" width="16" height="12" rx="1.5" fill="url(#gBlk)" stroke="#000"/><rect x="294" y="318" width="16" height="12" rx="1.5" fill="url(#gBlk)" stroke="#000"/><rect x="324" y="318" width="16" height="12" rx="1.5" fill="url(#gBlk)" stroke="#000"/><rect x="354" y="318" width="16" height="12" rx="1.5" fill="url(#gBlk)" stroke="#000"/><text x="318.0" y="348" text-anchor="middle" class="pbs">seviye dönüştürücü</text><rect x="482" y="266" width="104" height="124" rx="3" fill="url(#gPcbG)" stroke="#0c3b22"/><rect x="504.0" y="306.5" width="14" height="7" fill="#c9ccd1"/><rect x="550.0" y="306.5" width="14" height="7" fill="#c9ccd1"/><rect x="504.0" y="318.5" width="14" height="7" fill="#c9ccd1"/><rect x="550.0" y="318.5" width="14" height="7" fill="#c9ccd1"/><rect x="504.0" y="330.5" width="14" height="7" fill="#c9ccd1"/><rect x="550.0" y="330.5" width="14" height="7" fill="#c9ccd1"/><rect x="504.0" y="342.5" width="14" height="7" fill="#c9ccd1"/><rect x="550.0" y="342.5" width="14" height="7" fill="#c9ccd1"/><rect x="516.0" y="304" width="36" height="48" rx="2" fill="url(#gBlk)" stroke="#000"/><rect x="546.0" y="304" width="6" height="48" fill="#5d6067"/><circle cx="541" cy="346" r="2.2" fill="#8d9097"/><circle cx="572" cy="346" r="2.2" fill="#f2f5f8"/><text transform="translate(532.0 328) rotate(-90)" text-anchor="middle" class="silk">9637D</text><circle cx="498" cy="292" r="5" fill="#c4c8ce" stroke="#7d8289"/><circle cx="498" cy="364" r="5" fill="#c4c8ce" stroke="#7d8289"/><text x="498" y="283" text-anchor="middle" class="silk">8</text><text x="498" y="383" text-anchor="middle" class="silk">1</text><text x="498" y="261" text-anchor="middle" class="bbs bbn">LI</text><text x="498" y="402" text-anchor="middle" class="bbs bbn">RX</text><circle cx="522" cy="292" r="5" fill="#c4c8ce" stroke="#7d8289"/><circle cx="522" cy="364" r="5" fill="#c4c8ce" stroke="#7d8289"/><text x="522" y="283" text-anchor="middle" class="silk">7</text><text x="522" y="383" text-anchor="middle" class="silk">2</text><text x="522" y="261" text-anchor="middle" class="bbs bbn">VS</text><text x="522" y="402" text-anchor="middle" class="bbs bbn">LO</text><circle cx="546" cy="292" r="5" fill="#c4c8ce" stroke="#7d8289"/><circle cx="546" cy="364" r="5" fill="#c4c8ce" stroke="#7d8289"/><text x="546" y="283" text-anchor="middle" class="silk">6</text><text x="546" y="383" text-anchor="middle" class="silk">3</text><text x="546" y="261" text-anchor="middle" class="bbs bbn">K</text><text x="546" y="402" text-anchor="middle" class="bbs bbn">VCC</text><circle cx="570" cy="292" r="5" fill="#c4c8ce" stroke="#7d8289"/><circle cx="570" cy="364" r="5" fill="#c4c8ce" stroke="#7d8289"/><text x="570" y="283" text-anchor="middle" class="silk">5</text><text x="570" y="383" text-anchor="middle" class="silk">4</text><text x="570" y="261" text-anchor="middle" class="bbs bbn">GND</text><text x="570" y="402" text-anchor="middle" class="bbs bbn">TX</text><path d="M522 220H618" class="lead"/><rect x="544" y="213" width="52" height="14" rx="6" fill="url(#gRes)" stroke="#7b6438"/><rect x="553" y="213" width="4" height="14" fill="#6b3d1f"/><rect x="561" y="213" width="4" height="14" fill="#111"/><rect x="569" y="213" width="4" height="14" fill="#c62828"/><rect x="586" y="213" width="3" height="14" fill="#c8a03a"/><path d="M522 244H618" class="lead"/><rect x="544" y="237" width="52" height="14" rx="6" fill="url(#gRes)" stroke="#7b6438"/><rect x="553" y="237" width="4" height="14" fill="#6b3d1f"/><rect x="561" y="237" width="4" height="14" fill="#111"/><rect x="569" y="237" width="4" height="14" fill="#c62828"/><rect x="586" y="237" width="3" height="14" fill="#c8a03a"/><text x="630" y="236" class="pbb">R1 R2 · 1 kΩ</text><path d="M738 244H834" class="lead"/><rect x="758" y="236" width="56" height="16" rx="7" fill="url(#gBlk)" stroke="#000"/><rect x="764" y="236" width="6" height="16" fill="#c9ccd1"/><text x="786.0" y="270" text-anchor="middle" class="pbb">D1 1N4005</text><path d="M680 396V388a34 20 0 0 1 68 0V396Z" fill="url(#gCyl)" stroke="#000"/><circle cx="690" cy="388" r="3.4" fill="#c4c8ce" stroke="#555"/><circle cx="714" cy="388" r="3.4" fill="#c4c8ce" stroke="#555"/><circle cx="738" cy="388" r="3.4" fill="#c4c8ce" stroke="#555"/><text x="690" y="414" text-anchor="middle" class="bbs">OUT</text><text x="714" y="414" text-anchor="middle" class="bbs">GND</text><text x="738" y="414" text-anchor="middle" class="bbs">IN</text><text x="676" y="392" text-anchor="end" class="pbb">U1 78L05</text><path d="M690 130V154" class="lead"/><ellipse cx="690" cy="142.0" rx="9" ry="8" fill="url(#gCap)" stroke="#8a4f12"/><text x="704" y="146.0" class="pbb">C1</text><path d="M762 502V526" class="lead"/><ellipse cx="762" cy="514.0" rx="9" ry="8" fill="url(#gCap)" stroke="#8a4f12"/><text x="776" y="518.0" class="pbb">C2</text><text x="210" y="181" text-anchor="middle" class="pg bbn">1</text><text x="210" y="485" text-anchor="middle" class="pg bbn">1</text><text x="306" y="181" text-anchor="middle" class="pg bbn">5</text><text x="306" y="485" text-anchor="middle" class="pg bbn">5</text><text x="426" y="181" text-anchor="middle" class="pg bbn">10</text><text x="426" y="485" text-anchor="middle" class="pg bbn">10</text><text x="546" y="181" text-anchor="middle" class="pg bbn">15</text><text x="546" y="485" text-anchor="middle" class="pg bbn">15</text><text x="666" y="181" text-anchor="middle" class="pg bbn">20</text><text x="666" y="485" text-anchor="middle" class="pg bbn">20</text><text x="786" y="181" text-anchor="middle" class="pg bbn">25</text><text x="786" y="485" text-anchor="middle" class="pg bbn">25</text><text x="906" y="181" text-anchor="middle" class="pg bbn">30</text><text x="906" y="485" text-anchor="middle" class="pg bbn">30</text><text x="1026" y="181" text-anchor="middle" class="pg bbn">35</text><text x="1026" y="485" text-anchor="middle" class="pg bbn">35</text><text x="1146" y="181" text-anchor="middle" class="pg bbn">40</text><text x="1146" y="485" text-anchor="middle" class="pg bbn">40</text><text x="1266" y="181" text-anchor="middle" class="pg bbn">45</text><text x="1266" y="485" text-anchor="middle" class="pg bbn">45</text><text x="1386" y="181" text-anchor="middle" class="pg bbn">50</text><text x="1386" y="485" text-anchor="middle" class="pg bbn">50</text><text x="1506" y="181" text-anchor="middle" class="pg bbn">55</text><text x="1506" y="485" text-anchor="middle" class="pg bbn">55</text><text x="1626" y="181" text-anchor="middle" class="pg bbn">60</text><text x="1626" y="485" text-anchor="middle" class="pg bbn">60</text><text x="190" y="199.5" text-anchor="middle" class="pg bbn">a</text><text x="1714" y="199.5" text-anchor="middle" class="pg bbn">a</text><text x="190" y="223.5" text-anchor="middle" class="pg bbn">b</text><text x="1714" y="223.5" text-anchor="middle" class="pg bbn">b</text><text x="190" y="247.5" text-anchor="middle" class="pg bbn">c</text><text x="1714" y="247.5" text-anchor="middle" class="pg bbn">c</text><text x="190" y="271.5" text-anchor="middle" class="pg bbn">d</text><text x="1714" y="271.5" text-anchor="middle" class="pg bbn">d</text><text x="190" y="295.5" text-anchor="middle" class="pg bbn">e</text><text x="1714" y="295.5" text-anchor="middle" class="pg bbn">e</text><text x="190" y="367.5" text-anchor="middle" class="pg bbn">f</text><text x="1714" y="367.5" text-anchor="middle" class="pg bbn">f</text><text x="190" y="391.5" text-anchor="middle" class="pg bbn">g</text><text x="1714" y="391.5" text-anchor="middle" class="pg bbn">g</text><text x="190" y="415.5" text-anchor="middle" class="pg bbn">h</text><text x="1714" y="415.5" text-anchor="middle" class="pg bbn">h</text><text x="190" y="439.5" text-anchor="middle" class="pg bbn">i</text><text x="1714" y="439.5" text-anchor="middle" class="pg bbn">i</text><text x="190" y="463.5" text-anchor="middle" class="pg bbn">j</text><text x="1714" y="463.5" text-anchor="middle" class="pg bbn">j</text></svg></div>
+</section>
+
+<div class="grid">
+  <section class="card">
+    <h2>Breadboard kurulum sırası</h2>
+    <ol>
+      <li>Rayları ayır: üst iç ray <b>+12V</b>, alt iç ray <b>+5V</b>, iki dış ray GND. İki GND rayını 2. sütundan siyah kabloyla birleştir.</li>
+      <li><b>Ray köprüsü gerekmez:</b> Raylar 32. sütundaki klipste kesik, ama bütün devre ve ekran kablosu sol yarıda olduğu için iki yarıyı köprülemen gerekmez. Eski düzende ESP GND'si sağ yarıdan geldiği için 28 → 34 köprüleri şarttı; takılı kaldılarsa zararı yok.</li>
+      <li>L9637D adaptörünü ortadaki kanalın üstüne, <b>13–16. sütunlara</b> tak. Adaptörün üzerindeki delik numaraları entegrenin pin numaralarıyla aynıdır: 1–4 bir sırada, 5–8 karşı sırada, 1'in karşısında 8 var. <b>1–4 sırası alta (f)</b>, <b>1 ve 8 sola</b> gelecek şekilde tak. Fotoğraftaki duruşa göre (delik 1 sol üstte, entegre yazısı okunur) 90° sola, saat yönünün tersine çevrilmiş olur. Alt sıra soldan 1 RX, 2 LO, 3 VCC, 4 TX; üst sıra soldan 8 LI, 7 VS, 6 K, 5 GND.</li>
+      <li>Takmadan önce multimetreyle entegrenin bacağından delik numarasına süreklilik bak: pin 1 ↔ delik 1 ve pin 7 ↔ delik 7. Fotoğrafta entegre doğru yönde görünüyor: yazı okunur tutulduğunda pin 1 sol altta, kartın alt kenarındaki beyaz noktanın hemen üstündeki pedde. Kare delik 1 sol üstte kalır. 5, 6 ve 7 numaralı delikler birbirine kısa olmamalı. 6'daki lehim kuyruğu komşu deliklere değmiyor görünüyor.</li>
+      <li>Seviye dönüştürücüyü <b>3–8. sütunlara</b> tak: HV sırası alt yarıya (g), LV sırası üst yarıya (d). Soldan sağa HV4, HV3, GND, HV, HV2, HV1 (LV satırında da LV4 … LV1). Bu sıra, modül yazıları okunur tutulup (HV üstte) 180° çevrilince çıkar; soldan HV1 okuyorsan modül ters takılmıştır. Modülün sıra aralığı farklıysa HV altta, LV üstte kalacak şekilde kanalın üstüne oturt.</li>
+      <li>D1'i c23–c27 arasına yatır. Gri bant (katot) <b>c23</b> tarafında. R1'i b14–b18, R2'yi c14–c18 arasına tak.</li>
+      <li>78L05'i g21 (OUT), g22 (GND), g23 (IN) deliklerine, yazılı düz yüz alt kenara bakacak şekilde tak. C1'i üst raylar, C2'yi alt raylar arasına tak.</li>
+      <li><b>Ekran kartı breadboard'a takılmaz.</b> Waveshare ESP32-S3-Touch-LCD-2.1 dışarıda durur ve 4 pinli UART başlığından (yazılar: <code>GND</code>, <code>3V3</code>, <code>TXD</code>, <code>RXD</code>) kartın başlığına uyan 4 pinli bir kabloyla bağlanır. Kablonun diğer ucundaki 4 tel yan yana <b>a5–a8</b> deliklerine iner: a5 modülün LV tarafındaki GND pinine (d5), a6 LV'ye, a7 LV2'ye, a8 LV1'e bağlıdır.</li>
+      <li>Atlama kablolarını tabloya göre bağla. OBD tellerini en son tak. Ekran kablosu: başlık <b>GND → a5</b>, <b>3V3 → a6</b> (LV), <b>TXD → a7</b> (GPIO43, RX → LV2), <b>RXD → a8</b> (GPIO44, TX → LV1). <b>Dikkat, yazılar çaprazdır:</b> başlığın RXD'si bizim TX'imiz, TXD'si bizim RX'imizdir. Bu karışıklık daha önce yaşandı; TXD'yi LV1'e takarsan K hiç inmez. ESP GND'si a5 üzerinden modülün GND'sine, oradan j5 → alt − raya gider.</li>
+    </ol>
+    <p class="note">Breadboard teması araçta titreşimle kopabilir. Bu düzen masada ve kısa sürüş testinde kullanılmak için. Kalıcı montaj için delikli plaket yerleşimini kullan.</p>
+  </section>
+
+  <section class="card">
+    <h2>Breadboard kablo listesi</h2>
+    <table><thead><tr><th>Hat</th><th>Delikler</th></tr></thead><tbody>
+      <tr><td>+12V</td><td class="v pbw">OBD 16 → a27 · D1 → c23<br>a23 → üst + ray<br>a14 (VS) → üst + ray<br>e23 → f23 (78L05 IN)</td></tr>
+      <tr><td>K-Line</td><td class="v pbw">OBD 7 → a18<br>a15 (K) → d18</td></tr>
+      <tr><td>5V</td><td class="v pbw">j21 (78L05 OUT) → alt + ray<br>j15 (VCC) → alt + ray<br>j6 (HV) → alt + ray</td></tr>
+      <tr><td>GND</td><td class="v pbw">OBD 4, OBD 5 → üst − ray<br>a16 (L9637D GND) → üst − ray<br>j22 (78L05 GND) → alt − ray<br>j5 (HV GND) → alt − ray<br>üst − ray ↔ alt − ray (2. sütun)</td></tr>
+      <tr><td>TX (ESP → L9637D)</td><td class="v pbw">başlık RXD (GPIO44) → a8 (LV1)<br>i8 (HV1) → i16 (pin 4)</td></tr>
+      <tr><td>RX (L9637D → ESP)</td><td class="v pbw">h13 (pin 1) → h7 (HV2)<br>a7 (LV2) → başlık TXD (GPIO43)</td></tr>
+      <tr><td>ESP besleme</td><td class="v pbw">başlık 3V3 → a6 (LV)<br>başlık GND → a5 (modül GND)</td></tr>
+    </tbody></table>
+    <p class="note">L9637D pin 2 (f14, LO) ve pin 8 (e13, LI) ile modülün 3. ve 4. kanalı boş kalır. Kanal seçimi K-Line tanı tablosuyla aynıdır: TX = HV1/LV1, RX = HV2/LV2.</p>
+  </section>
+</div>
+<!-- breadboard:end -->
+
+
+
+
+
+<div class="grid">
+  <section class="card">
+    <h2>Montaj sırası</h2>
+    <ol>
+      <li>L9637D'yi SO8→DIP adaptöre lehimle. Adaptörü delik 1 (kare) sol üstte tut. Entegre yazısı okunur durmalı, pin-1 noktası sol altta, kartın alt kenarındaki beyaz noktanın hemen üstündeki pede gelmeli.</li>
+      <li>Adaptörü, 78L05'i, diyodu, iki 1 kΩ direnci (yan yana, paralel) ve iki 100 nF kondansatörü delikli plakete yerleştir.</li>
+      <li>OBD kablosunun 4, 5, 7 ve 16 numaralı tellerini multimetreyle bul. Kablo renklerine güvenme: şemadaki renkler yalnızca çizim içindir, aracın tesisat renkleri değildir.</li>
+      <li>BSS138 modülünü 5V tarafı (HV) entegreye bakacak şekilde bağla.</li>
+      <li>ESP32'yi bağlamadan sağdaki ölçümleri yap.</li>
+      <li><b>Devre kutusu:</b> delikli plaketi küçük bir kutuya koy ve OBD soketinin yanına sabitle. OBD kablosu kısa kalır, kutu pedallara ve direksiyon miline değmemeli.</li>
+      <li><b>Ekran:</b> Waveshare ESP32-S3-Touch-LCD-2.1'i torpidoya, örneğin bir telefon tutucuya yerleştir. Bütün veriler kartın kendi ekranında görünür.</li>
+      <li><b>Kablo:</b> kutudaki J2 ile kartın 4 pinli UART başlığı arasına kartın UART başlığına uyan 4 pinli kablo çek: GND → GND, 3V3 → 3V3, başlık <b>TXD</b> (GPIO43) → J2 RX, başlık <b>RXD</b> (GPIO44) → J2 TX. Kabloyu olabildiğince kısa tut; TX ve RX tellerini GND teliyle birlikte burgula.</li>
+      <li><b>Besleme:</b> kartı <code>USB</code> yazan Type-C'sinden aracın USB şarj aletiyle besle. <code>UART</code> yazan Type-C boş kalmalı.</li>    </ol>
+    <p class="note"><b>Yazılar çaprazdır:</b> başlığın <code>RXD</code> pini bizim TX'imiz (GPIO44, ESP → L9637D), <code>TXD</code> pini bizim RX'imizdir (GPIO43, L9637D → ESP). Bu karışıklık daha önce yaşandı: TXD'yi devrenin TX'ine bağlarsan K hiç inmez. 5 V'u ESP'ye verme, kartın 3V3'ü sadece seviye dönüştürücünün LV tarafını besler.</p>
+  </section>
+
+  <section class="card">
+    <h2>ESP32'yi bağlamadan önce ölç</h2>
+    <table>
+      <thead><tr><th>Nokta</th><th>Beklenen</th><th></th></tr></thead>
+      <tbody>
+        <tr><td>L9637D pin 7 (VS)</td><td class="v">11.5–14 V</td><td><span class="pill ok">kontak açık</span></td></tr>
+        <tr><td>L9637D pin 3 (VCC)</td><td class="v">4.9–5.1 V</td><td></td></tr>
+        <tr><td>L9637D pin 6 (K)</td><td class="v">11–13 V</td><td><span class="pill ok">hat boşta</span></td></tr>
+        <tr><td>Seviye dönüştürücü LV1 ve LV2</td><td class="v">≈ 3.3 V</td><td><span class="pill warn">5V ise bağlama</span></td></tr>
+      </tbody>
+    </table>
+    <p class="note">LV pinlerini ölçerken modülün LV ucuna ESP32'nin 3V3'ü bağlı olmalı. Bunun için kartı USB'den besleyip kablonun sadece GND ve 3V3 tellerini bağla (breadboard'da a5 ve a6). TX/RX tellerini (a7, a8) ölçüm temizse tak. Plakette J2 kablosu tek parçaysa önce kabloyu takmadan LV1 ve LV2'de 5 V olmadığını kontrol et (kablo yokken LV tarafı 5 V'a çıkmamalı), sonra kabloyu takıp LV1 ve LV2'yi ölç.</p>
+  </section>
+
+  <section class="card">
+    <h2>OBD fişi pin kontrolü</h2>
+    <div class="plugbox">
+      <svg viewBox="0 0 360 190" role="img" aria-labelledby="plugt">
+        <title id="plugt">OBD-II erkek fiş, bacaklara bakarken: üst sıra 9–16, alt sıra 1–8, soldan sağa</title>
+        <rect x="150" y="24" width="60" height="18" rx="3" fill="#2a2c30" stroke="#000"/>
+        <path d="M24 38H336L322 168H38Z" fill="#232528" stroke="#000" stroke-width="2"/>
+        <path d="M40 52H320L309 156H51Z" fill="#141517"/>
+        <rect x="80" y="100" width="90" height="7" rx="3" fill="#2f3236"/>
+        <rect x="200" y="100" width="90" height="7" rx="3" fill="#2f3236"/>
+        <circle cx="300" cy="74" r="13" fill="#d62828"/>
+        <circle cx="165" cy="128" r="13" fill="#e6e8e4"/>
+        <circle cx="198" cy="128" r="13" fill="#e6e8e4"/>
+        <circle cx="264" cy="128" r="13" fill="#f2c230"/>
+        <g fill="#c3c7cc" stroke="#6d7177">
+          <rect x="53" y="70" width="18" height="8" rx="2"/><rect x="87" y="70" width="18" height="8" rx="2"/>
+          <rect x="121" y="70" width="18" height="8" rx="2"/><rect x="155" y="70" width="18" height="8" rx="2"/>
+          <rect x="189" y="70" width="18" height="8" rx="2"/><rect x="223" y="70" width="18" height="8" rx="2"/>
+          <rect x="257" y="70" width="18" height="8" rx="2"/><rect x="291" y="70" width="18" height="8" rx="2"/>
+          <rect x="57" y="124" width="18" height="8" rx="2"/><rect x="90" y="124" width="18" height="8" rx="2"/>
+          <rect x="123" y="124" width="18" height="8" rx="2"/><rect x="156" y="124" width="18" height="8" rx="2"/>
+          <rect x="189" y="124" width="18" height="8" rx="2"/><rect x="222" y="124" width="18" height="8" rx="2"/>
+          <rect x="255" y="124" width="18" height="8" rx="2"/><rect x="288" y="124" width="18" height="8" rx="2"/>
+        </g>
+        <g style="font:600 11px var(--mono)" fill="#aeb3ba" text-anchor="middle">
+          <text x="62" y="98">9</text><text x="96" y="98">10</text><text x="130" y="98">11</text><text x="164" y="98">12</text>
+          <text x="198" y="98">13</text><text x="232" y="98">14</text><text x="266" y="98">15</text><text x="300" y="98" fill="#ff7b7b">16</text>
+          <text x="66" y="152">1</text><text x="99" y="152">2</text><text x="132" y="152">3</text><text x="165" y="152" fill="#fff">4</text>
+          <text x="198" y="152" fill="#fff">5</text><text x="231" y="152">6</text><text x="264" y="152" fill="#ffd95a">7</text><text x="297" y="152">8</text>
+        </g>
+        <text x="180" y="186" text-anchor="middle" style="font:500 11px var(--body)" fill="#4b5058">kilit çıkıntısı yukarıda, bacaklara bakarken</text>
+      </svg>
+    </div>
+    <p class="note" style="margin-top:8px"><span class="pinchip" style="background:#d62828"></span>16 +12V · <span class="pinchip" style="background:#e6e8e4"></span>4 ve 5 GND · <span class="pinchip" style="background:#f2c230"></span>7 K-Line. Kalıptaki numaralar standarda uyuyor: 1 ile 16 çapraz köşelerde. Yine de her bacağı multimetreyle kabloya kadar doğrula.</p>
+
+    <h3>1 · Masada, bip modu</h3>
+    <table>
+      <thead><tr><th>Pin</th><th>Görevi</th><th>Kablo rengi</th></tr></thead>
+      <tbody>
+        <tr><td class="v">4</td><td>Şasi GND</td><td>______</td></tr>
+        <tr><td class="v">5</td><td>Sinyal GND</td><td>______</td></tr>
+        <tr><td class="v">7</td><td>K-Line</td><td>______</td></tr>
+        <tr><td class="v">16</td><td>+12V</td><td>______</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Her kabloyu bulunca bant sarıp numarasını yaz. 16–4, 16–5 ve 7–4 arasında bip <strong>olmamalı</strong>. 4–5 arası bip verebilir, bazı fişlerde içeriden birleşik.</p>
+
+    <h3>2 · Araçta, DC volt (devre bağlı değil)</h3>
+    <table>
+      <thead><tr><th>Kırmızı → siyah prob</th><th>Kontak</th><th>Beklenen</th></tr></thead>
+      <tbody>
+        <tr><td>16 → 4</td><td>kapalı</td><td class="v">+12–12,8 V</td></tr>
+        <tr><td>16 → 5</td><td>kapalı</td><td class="v">+12–12,8 V</td></tr>
+        <tr><td>7 → 4</td><td>açık</td><td class="v">genelde 10–13 V</td></tr>
+      </tbody>
+    </table>
+    <p class="note"><span class="pill warn">eksi değer</span> İlk satır eksi çıkarsa kablolar karışmıştır, devreyi bağlama. Pin 7'de 0 V normal olabilir, pull-up dirençler hattı yukarı çeker. Kullanılmayan 12 kabloyu tek tek kes veya izole et.</p>
+  </section>
+
+  <section class="card">
+    <h2>Parçalar</h2>
+    <table>
+      <thead><tr><th>Parça</th><th>Adet</th><th>Nereden</th></tr></thead>
+      <tbody>
+        <tr><td>L9637D SOIC-8</td><td class="v">1</td><td><a href="https://arkotekelektronik.com/l9637d" target="_blank" rel="noopener">Arkotek</a> (alındı)</td></tr>
+        <tr><td>SOP8/SSOP8 → DIP çevirici</td><td class="v">2</td><td><a href="https://www.motorobit.com/sop8-ssop8-smd-dip-cevirici" target="_blank" rel="noopener">Motorobit</a></td></tr>
+        <tr><td>1×40 erkek header</td><td class="v">1</td><td><a href="https://www.motorobit.com/1x40-erkek-header-40-pin-254mm-180-derece" target="_blank" rel="noopener">Motorobit</a></td></tr>
+        <tr><td>8 pin DIP soket</td><td class="v">1</td><td><a href="https://www.motorobit.com/8-pin-dip-soket-entegre-soketi" target="_blank" rel="noopener">Motorobit</a></td></tr>
+        <tr><td>Lojik seviye dönüştürücü (HV/LV, 4 kanal)</td><td class="v">1</td><td><a href="https://www.motorobit.com/lojik-gerilim-seviye-donusturucu-33v-5v" target="_blank" rel="noopener">Motorobit</a></td></tr>
+        <tr><td>1N4005 (1N4007 yerine)</td><td class="v">1</td><td><a href="https://www.motorobit.com/1n4005-600v-1a-diyot" target="_blank" rel="noopener">Motorobit</a></td></tr>
+        <tr><td>1 kΩ ¼ W, 2'si paralel = 500 Ω (510 Ω yerine)</td><td class="v">2</td><td><a href="https://www.motorobit.com/1k-14w-direnc-10-adet" target="_blank" rel="noopener">Motorobit</a> 10'lu</td></tr>
+        <tr><td>100 nF seramik (104)</td><td class="v">2</td><td><a href="https://www.motorobit.com/100nf-50v-seramik-kondansator-10-adet" target="_blank" rel="noopener">Motorobit</a> 10'lu</td></tr>
+        <tr><td>5×7 cm delikli plaket</td><td class="v">1</td><td><a href="https://www.motorobit.com/5x7cm-epoxy-cift-tarafli-delikli-plaket" target="_blank" rel="noopener">Motorobit</a></td></tr>
+        <tr><td>L78L05ACZ TO-92</td><td class="v">1</td><td><a href="https://arkotekelektronik.com/l78l05acz-to-92-5v-lineer-voltaj-regulatoru" target="_blank" rel="noopener">Arkotek</a> (Motorobit'te yok)</td></tr>
+        <tr><td>OBD-II erkek fiş, kablolu</td><td class="v">1</td><td>pazar yeri: "OBD2 16 pin erkek soket kablolu"</td></tr>
+        <tr><td>Waveshare ESP32-S3-Touch-LCD-2.1</td><td class="v">1</td><td>alındı</td></tr>
+        <tr><td>Kartın UART başlığına uyan 4 pinli kablo (ekran → devre kutusu, J2)</td><td class="v">1</td><td>kartla gelip gelmediğini kontrol et</td></tr>
+        <tr><td>Araç USB şarj aleti</td><td class="v">1</td><td>elde olan</td></tr>      </tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>Dikkat</h2>
+    <ul>
+      <li><b>Düzeltme:</b> Bu sayfanın önceki sürümünde pin 7 ile 8 ters yazılmıştı. +12 V (diyot ve pull-up direnci) <b>pin 7'ye (VS)</b> gider, pin 8 (LI) boş kalır. 12 V'u pin 8'e bağladıysan pin 7'ye taşı. Pin 8 L hattı girişidir ve 12 V'a dayanıklıdır, entegre büyük ihtimalle zarar görmemiştir.</li>
+      <li>ESP32 bağlıyken ELM327'yi sökete takma. Hatta tek test cihazı olmalı.</li>
+      <li>K-Line UART1'i, kartın 4 pinli UART başlığındaki GPIO44 (TX) ve GPIO43 (RX) pinleriyle kullanır. Seri konsol USB'dedir (USB-Serial-JTAG, <code>USB</code> yazan Type-C): log izlerken K-Line kapanmaz.</li>
+      <li><b>Başlık yazıları çaprazdır:</b> başlığın <code>RXD</code> pini = GPIO44 = bizim TX'imiz (→ LV1), <code>TXD</code> pini = GPIO43 = bizim RX'imiz (← LV2). Bu karışıklık daha önce yaşandı.</li>
+      <li><b><code>UART</code> yazan Type-C (CH343) boş kalmalı.</b> Kart üzerindeki FSUSB42 anahtarı, bu porta kablo takılınca GPIO43/44'ü CH343'e bağlar ve başlığı ayırır: K-Line çalışmaz. Önceki "TX pad HIGH kalıyor" belirtisi tam olarak bundan ya da yanlış kablolamadan çıkmıştı. Besleme, yükleme ve log hep <code>USB</code> yazan Type-C'den.</li>
+      <li>Kartın 3V3 pininden sadece seviye dönüştürücünün LV ucunu besle. 5 V'u ESP'ye verme: L9637D tarafı kendi 78L05'inden beslenir.</li>      <li>L9637D pin sırasını aldığın parçanın datasheet'inden bir kez daha kontrol et: 1 RX, 2 LO, 3 VCC, 4 TX, 5 GND, 6 K, 7 VS, 8 LI.</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>Seri logdaki K-Line tanısı</h2>
+    <p>Kalos 1.4, ELM327'de <code>A5</code> protokolüyle bağlanır (ISO 14230-4 KWP fast init). Cihaz önce bunu dener. Başarısız olursa logda <code>src: k-line hızlı init  HATA</code> satırının sonunda sebep yazar. Açılış adımları ve "K inmiyor" gibi tanılar kartın ekranındaki açılış sayfasında da görünür:</p>
+    <table>
+      <thead><tr><th>Logda</th><th>Anlamı / bakılacak yer</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pill warn">K hep LOW</span></td><td>K hattı boştayken LOW okunuyor. Pin 6 ile pin 7 arasındaki pull-up direncini, pin 7'deki 12 V'u ve RX hattını (pin 1 → HV2/LV2 → başlık TXD, GPIO43) kontrol et. Devre hiç bağlı değilken de bu çıkar.</td></tr>
+        <tr><td><span class="pill warn">K inmiyor</span></td><td>ESP TX'i 12 ms LOW tuttuğu halde GPIO43 hâlâ HIGH okuyor. Ya K hattı hiç inmiyor (TX zinciri: GPIO44 / başlık RXD → LV1/HV1 → pin 4; plakette LV3/HV3), ya da iniyor ama ESP bunu göremiyor (RX zinciri: pin 1 → HV2/LV2 → başlık TXD / GPIO43). Önce <code>UART</code> Type-C'nin boş olduğunu ve TXD/RXD tellerinin ters takılmadığını kontrol et. Aşağıdaki adım adım testle hangisi olduğunu bul.</td></tr>
+        <tr><td><span class="pill warn">TX inmiyor</span></td><td>ESP'nin kendi TX pini (GPIO44, başlık RXD) LOW'a inmiyor. En sık sebep: kartın <code>UART</code> yazan Type-C'sine kablo takılı, FSUSB42 GPIO43/44'ü CH343'e verip başlığı ayırmış. Onu çıkar. Değilse TX telinin 3V3'e ya da 5V'a değmediğini, başlıkta TXD'ye (yanlış pine) takılmadığını kontrol et.</td></tr>
+        <tr><td><span class="pill warn">echo yok</span></td><td>K hattı iniyor ama geri okunan baytlar bozuk. RX hattında seviye ya da gürültü sorunu var.</td></tr>
+        <tr><td><span class="pill ok">ECU sessiz</span></td><td>Donanım sağlam. Kontak açık mı, OBD pin 7 doğru tel mi, sökette başka cihaz takılı mı, kontrol et.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>Log izleme (USB)</h2>
+    <p>Firmware K-Line'da giden ve gelen her baytı yazar. Araçta şarj aletini çıkar, laptopu kartın <code>USB</code> yazan Type-C'sine bağla (kart buradan beslenir, log da buradan akar), sonra <code>idf.py -p COMx monitor</code> çalıştır. Konsol USB-Serial-JTAG'dir; Windows'ta port "USB Seri Cihaz (COMx)" olarak görünür. <code>UART</code> yazan Type-C'ye bağlanma: CH343 portu K-Line'ı başlıktan ayırır. Açılış adımları ve tanı aynı anda kartın ekranındaki açılış sayfasında da görünür.</p>
+    <table>
+      <thead><tr><th>Satır</th><th>Anlamı</th></tr></thead>
+      <tbody>
+        <tr><td><code>src: …</code></td><td>Bağlantı adımları ve sonucu (<code>OK</code> / <code>HATA</code> + sebep): <code>arayüz K-Line</code>, <code>k-line hızlı init</code>, <code>k-line 5 baud init</code>, <code>pid taraması</code>.</td></tr>
+        <tr><td><code>K init TX pad</code></td><td>Init sırasında her ms GPIO44'ün (TX, başlık RXD) gerçek seviyesi. İlk 25 karakter <code>0</code> olmalı.</td></tr>
+        <tr><td><code>K init RX</code></td><td>Aynı anda GPIO43 (RX, başlık TXD). İlk 25 karakterde <code>0</code> görünmeli; hep <code>1</code> ise K inmiyor.</td></tr>
+        <tr><td><code>K TX</code> / <code>K echo</code></td><td>Gönderilen çerçeve ve geri okunan yankı. Aynı olmalı: <code>C1 33 F1 81 66</code>.</td></tr>
+        <tr><td><code>K RX</code></td><td>ECU'nun cevabı. <code>(yok)</code> ise ECU susuyor; doğru cevap <code>83 F1 xx C1 ..</code> ile başlar.</td></tr>
+        <tr><td><code>K ölç TX LOW</code></td><td>5 sn'lik ölçüm penceresinde TX pad ve RX seviyesi.</td></tr>
+        <tr><td><code>RPM … | SPD …</code></td><td>Bağlantı kurulunca her 250 ms'de bir canlı veri satırı.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>Firmware yükleme</h2>
+    <p>Kart: Waveshare ESP32-S3-Touch-LCD-2.1 (480×480 yuvarlak dokunmatik ekran). ESP-IDF 5.3 ile derlenir; kaynak OBD-II K-Line, veriler kartın kendi ekranında gösterilir.</p>
+    <ol>
+      <li>Laptopu kartın <code>USB</code> yazan Type-C'sine bağla (native USB, USB-Serial-JTAG). <code>UART</code> yazan Type-C boş kalsın. Port numarasını Aygıt Yöneticisi'nden bul (ör. <code>COM7</code>).</li>
+      <li>ESP-IDF terminalinde proje klasöründe: <code>idf.py -p COM7 flash monitor</code></li>
+      <li>Yükleme başlamazsa <b>BOOT</b> tuşunu basılı tutarken kartı yeniden başlat (reset tuşu ya da USB kablosunu çıkarıp takarak), BOOT'u bırak ve komutu tekrar çalıştır.</li>
+      <li>Açılışta logda <code>K-Line OBD, source: OBD-II K-Line</code> ve <code>K-Line on UART1 TX GPIO44 RX GPIO43</code> satırları görünmeli. Aynı açılış adımları kartın ekranında da görünür.</li>
+    </ol>
+    <p class="note">Pinler <code>menuconfig</code> → K-Line OBD → OBD-II K-Line menüsünden değiştirilebilir. Varsayılan TX GPIO44 (başlık <code>RXD</code>), RX GPIO43'tür (başlık <code>TXD</code>); bu sayfadaki bütün çizimler buna göredir.</p>
+  </section>
+
+  <section class="card">
+    <h2>"K inmiyor" · adım adım ölçüm</h2>
+    <p>Kontak ON (II), cihaz sokete takılı. Tüm voltajları OBD pin 4'e (şasi) göre ölç. İlk hatalı adımda dur: sorun oradadır.</p>
+    <p class="note"><b>Ölçüm penceresi:</b> "K inmiyor" çıkınca cihaz önce TX'i 5 sn LOW, sonra 5 sn HIGH tutar. Logda pencere başladıktan yarım saniye sonra <code>src: ölç · TX LOW 5 sn</code> ve <code>K ölç TX LOW : TX pad 0, RX 0</code> satırları çıkar, HIGH için de aynısı. Bu sürede yolu multimetreyle takip et. LOW penceresinde GPIO44, HV1, pin 4, pin 6, pin 1, HV2 ve GPIO43'ün hepsi ≈ 0 V olmalı. HIGH penceresinde hepsi tekrar yükselmeli. Gerilimin düşmediği ilk nokta arızalı bağlantıdır.</p>
+    <ol>
+      <li><b>Pin yeri ve UART portu:</b> TX teli kartın UART başlığında <code>RXD</code> (GPIO44), RX teli <code>TXD</code> (GPIO43) pininde olmalı. Kartın <code>UART</code> yazan Type-C'si boş olmalı: takılıysa FSUSB42 GPIO43/44'ü CH343'e verir ve başlık kopar, tam olarak bu hata çıkar.</li>
+      <li><b>Kablo yönü:</b> başlık RXD (GPIO44) → LV1, başlık TXD (GPIO43) → LV2 (plakette GPIO44 → J2 TX → LV3, GPIO43 → J2 RX → LV2). Yazılara bakıp TXD'yi TX'e bağlarsan ESP çıkışı dönüştürücünün RX çıkışına bağlanmış olur ve K hiç inmez.</li>
+      <li><b>Durağan voltajlar:</b>
+        <table>
+          <thead><tr><th>Nokta</th><th>Beklenen</th></tr></thead>
+          <tbody>
+            <tr><td>L9637D pin 3 (VCC)</td><td class="v">≈ 5 V</td></tr>
+            <tr><td>L9637D pin 5 (GND)</td><td class="v">0 V</td></tr>
+            <tr><td>L9637D pin 7 (VS)</td><td class="v">≈ 11.5 V</td></tr>
+            <tr><td>L9637D pin 6 (K)</td><td class="v">≈ 12 V</td></tr>
+            <tr><td>L9637D pin 4 (TX) ve pin 1 (RX)</td><td class="v">≈ 5 V</td></tr>
+            <tr><td>Dönüştürücü HV / LV besleme pinleri</td><td class="v">5 V / 3.3 V</td></tr>
+            <tr><td>LV1 ve LV2</td><td class="v">≈ 3.3 V</td></tr>
+          </tbody>
+        </table>
+      </li>
+      <li><b>Entegre testi:</b> L9637D pin 4'ü bir kabloyla kısa süre GND'ye değdir. Pin 6 (K) 1 V'un altına inmeli, pin 1 (RX) da 0 V'a düşmeli. K inmiyorsa adaptör yönü, VS ya da entegre hatalıdır.</li>
+      <li><b>TX kanalı</b> (plakette LV3/HV3)<b>:</b> TX telini (GPIO44) LV1'den çıkar, LV1'i GND'ye değdir. HV1 ve pin 4 0 V'a inmeli. İnmiyorsa dönüştürücüde HV/LV yönü ya da beslemesi yanlış.</li>
+      <li><b>RX kanalı:</b> Aynı anda LV2'yi ölç, 0 V'a inmeli. Pin 1 inip LV2 inmiyorsa RX kanalı yanlış bağlanmış.</li>
+      <li>Hepsi doğruysa sorun GPIO44 tarafındadır: 1. ve 2. adıma geri dön, <code>UART</code> Type-C'nin boş olduğunu ve ESP GND'sinin devre GND'sine bağlı olduğunu kontrol et.</li>
+    </ol>
+  </section>
+
+  <section class="card">
+    <h2>Kalos OBD soketi (araçtan)</h2>
+    <p>Soket araçta 90° dönük durur: sağ sütun yukarıdan aşağı 1→8, sol sütun 9→16. Terminali olan pinler:</p>
+    <table>
+      <thead><tr><th>Pin</th><th>Görevi</th></tr></thead>
+      <tbody>
+        <tr><td class="v">4</td><td>Şasi GND</td></tr>
+        <tr><td class="v">5</td><td>Sinyal GND</td></tr>
+        <tr><td class="v">7</td><td><b>K-Line</b> · sağ sütunda alttan 2.</td></tr>
+        <tr><td class="v">8</td><td>Dolu, kullanılmıyor (üreticiye özel)</td></tr>
+        <tr><td class="v">13</td><td>Dolu, kullanılmıyor (ABS/airbag olabilir)</td></tr>
+        <tr><td class="v">16</td><td>+12 V sürekli</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Cihaz takılı değilken, kontak ON durumunda pin 7 ile pin 4 arası genelde 11–12 V gösterir. Erkek fişe önden bakınca numaralar aynalıdır: pin 7 telinin soketteki doğru deliğe oturduğunu süreklilikle doğrula.</p>
+  </section>
+</div>
+
+<!-- measure:start -->
+<section class="figure pb" aria-label="Ölçüm haritası">
+<div class="pbhead"><h2>Ölçüm haritası · "K inmiyor"</h2>
+<p class="note">Kontak ON. Logda <code>ölç · TX LOW 5 sn</code> çıkınca siyah prob OBD pin 4'te sabit kalır, kırmızı probla 1'den 7'ye sırayla ölç. Sonra <code>ölç · TX HIGH 5 sn</code> penceresinde aynı turu tekrarla. Sinyal mavi yoldan gider, entegrenin içinden K hattına geçer, yeşil yoldan geri döner. Voltajın düşmediği ilk nokta arızalı bağlantıdır. Kanal numaraları breadboard içindir; delikli plakette 2. nokta HV3 (I7), 6. nokta HV2 (F7) olur.</p></div>
+<div class="pbviews"><div class="scroll">
+<svg viewBox="0 0 1200 540" role="img" aria-labelledby="mst">
+<title id="mst">Ölçüm noktaları: GPIO44 (başlık RXD), HV1, L9637D pin 4, pin 6, pin 1, HV2, GPIO43 (başlık TXD); her biri için TX LOW ve TX HIGH penceresinde beklenen voltaj</title>
+
+<!-- wires -->
+<path d="M200 190H360" class="blu o"/><path d="M200 190H360" class="blu c"/><path d="M200 190H360" class="h"/>
+<path d="M500 190H680" class="blu o"/><path d="M500 190H680" class="blu c"/><path d="M500 190H680" class="h"/>
+<path d="M830 260H1010" class="yel o"/><path d="M830 260H1010" class="yel c"/><path d="M830 260H1010" class="h"/>
+<path d="M680 330H500" class="grn o"/><path d="M680 330H500" class="grn c"/><path d="M680 330H500" class="h"/>
+<path d="M360 330H200" class="grn o"/><path d="M360 330H200" class="grn c"/><path d="M360 330H200" class="h"/>
+
+<!-- Waveshare ESP32-S3-Touch-LCD-2.1 UART başlığı -->
+<rect x="50" y="150" width="150" height="230" rx="10" fill="#1d2024" stroke="#000"/>
+<text x="125" y="140" text-anchor="middle" class="lbl">Ekran kartı UART başlığı</text>
+<rect x="190" y="182" width="16" height="16" rx="2" fill="#e2bd5a" stroke="#7a5a12"/>
+<rect x="190" y="322" width="16" height="16" rx="2" fill="#e2bd5a" stroke="#7a5a12"/>
+<text x="180" y="186" text-anchor="end" style="font:600 14px var(--mono);fill:#f2f5f8">RXD</text>
+<text x="180" y="203" text-anchor="end" style="font:500 11px var(--mono);fill:#9aa1ab">GPIO44 · TX</text>
+<text x="180" y="326" text-anchor="end" style="font:600 14px var(--mono);fill:#f2f5f8">TXD</text>
+<text x="180" y="343" text-anchor="end" style="font:500 11px var(--mono);fill:#9aa1ab">GPIO43 · RX</text>
+<text x="66" y="258" style="font:500 11px var(--mono);fill:#9aa1ab">3V3 → LV</text>
+<text x="66" y="276" style="font:500 11px var(--mono);fill:#9aa1ab">GND → GND</text>
+
+<!-- level shifter -->
+<rect x="360" y="150" width="140" height="230" rx="6" fill="#1f5aa0" stroke="#0f2f57"/>
+<text x="430" y="140" text-anchor="middle" class="lbl">Seviye dönüştürücü</text>
+<g fill="#e2bd5a" stroke="#7a5a12"><rect x="352" y="182" width="16" height="16" rx="2"/><rect x="492" y="182" width="16" height="16" rx="2"/><rect x="352" y="322" width="16" height="16" rx="2"/><rect x="492" y="322" width="16" height="16" rx="2"/></g>
+<g style="font:600 12px var(--mono);fill:#f2f5f8"><text x="376" y="194">LV1</text><text x="484" y="194" text-anchor="end">HV1</text><text x="376" y="334">LV2</text><text x="484" y="334" text-anchor="end">HV2</text></g>
+<path d="M412 208H448M440 202l8 6-8 6" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="2" stroke-dasharray="4 3"/>
+<path d="M448 312H412M420 306l-8 6 8 6" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="2" stroke-dasharray="4 3"/>
+<text x="430" y="258" text-anchor="middle" style="font:500 11px var(--mono);fill:#cfe0f5">LV = 3.3 V</text>
+<text x="430" y="276" text-anchor="middle" style="font:500 11px var(--mono);fill:#cfe0f5">HV = 5 V</text>
+
+<!-- L9637D -->
+<rect x="680" y="150" width="150" height="230" rx="6" fill="#1f5aa0" stroke="#0f2f57"/>
+<text x="755" y="140" text-anchor="middle" class="lbl">L9637D</text>
+<rect x="727" y="222" width="56" height="76" rx="3" fill="#141516" stroke="#000"/>
+<g fill="#e2bd5a" stroke="#7a5a12"><rect x="672" y="182" width="16" height="16" rx="2"/><rect x="672" y="322" width="16" height="16" rx="2"/><rect x="822" y="252" width="16" height="16" rx="2"/></g>
+<g style="font:600 12px var(--mono);fill:#f2f5f8"><text x="696" y="178">4 · TX</text><text x="696" y="358">1 · RX</text><text x="814" y="248" text-anchor="end">6 · K</text></g>
+<path d="M690 190H740V236M734 228l6 8 6-8" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="2" stroke-dasharray="4 3"/>
+<path d="M783 260H818" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="2" stroke-dasharray="4 3"/>
+<path d="M770 298V330H692M700 324l-8 6 8 6" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="2" stroke-dasharray="4 3"/>
+<text x="755" y="372" text-anchor="middle" style="font:500 10.5px var(--mono);fill:#cfe0f5">pin 3 = 5 V · pin 7 = 12 V</text>
+
+<!-- OBD socket -->
+<rect x="1010" y="200" width="130" height="130" rx="14" fill="#1b1c1e" stroke="#000"/>
+<text x="1075" y="190" text-anchor="middle" class="lbl">OBD soketi</text>
+<circle cx="1010" cy="260" r="9" fill="#f2c230" stroke="#000"/>
+<circle cx="1010" cy="305" r="9" fill="#e6e8e4" stroke="#000"/>
+<text x="1028" y="264" style="font:600 13px var(--mono);fill:#f2f5f8">7 · K</text>
+<text x="1028" y="309" style="font:600 13px var(--mono);fill:#f2f5f8">4 · GND</text>
+
+<!-- multimeter -->
+<path d="M985 392C990 350 1000 325 1006 312" fill="none" stroke="#1b1d20" stroke-width="5" stroke-linecap="round"/>
+<path d="M918 392C905 370 880 362 862 360" fill="none" stroke="#d62828" stroke-width="5" stroke-linecap="round"/>
+<path d="M862 360L842 356" stroke="#9ca1a8" stroke-width="3" stroke-linecap="round"/>
+<rect x="900" y="384" width="100" height="140" rx="14" fill="#f2c230" stroke="#7d5f00" stroke-width="2"/>
+<rect x="912" y="396" width="76" height="34" rx="4" fill="#c9d4b8" stroke="#56604a"/>
+<text x="982" y="420" text-anchor="end" style="font:700 17px var(--mono);fill:#23262b">0.02</text>
+<circle cx="950" cy="470" r="22" fill="#2b2d30" stroke="#000"/>
+<path d="M950 470L950 452" stroke="#f2f5f8" stroke-width="3" stroke-linecap="round"/>
+<text x="950" y="512" text-anchor="middle" style="font:600 11px var(--mono);fill:#3a2e00">DC V</text>
+<text x="1016" y="412" class="pin">siyah prob:</text>
+<text x="1016" y="428" class="sm">OBD pin 4'te sabit</text>
+<text x="1016" y="456" class="pin" style="fill:#a31b1b">kırmızı prob:</text>
+<text x="1016" y="472" class="sm">1 → 7 sırayla</text>
+
+<!-- measuring points + expected values -->
+<g style="font:600 13px var(--display)">
+  <!-- top lane -->
+  <path d="M280 176L213 92M545 176L493 92M640 176L713 92M900 246L943 92" stroke="#7b8088" stroke-width="1.5"/>
+  <g transform="translate(120 30)"><rect width="186" height="62" rx="8" fill="#fff" stroke="#c4c8c0"/><text x="12" y="22" fill="#23262b">GPIO44 · başlık RXD</text><text x="12" y="46" style="font:500 12px var(--mono)" fill="#23262b"><tspan fill="#2f6fd6">LOW</tspan> 0 V · <tspan fill="#b4472a">HIGH</tspan> 3.3 V</text></g>
+  <g transform="translate(400 30)"><rect width="186" height="62" rx="8" fill="#fff" stroke="#c4c8c0"/><text x="12" y="22" fill="#23262b">HV1</text><text x="12" y="46" style="font:500 12px var(--mono)" fill="#23262b"><tspan fill="#2f6fd6">LOW</tspan> 0 V · <tspan fill="#b4472a">HIGH</tspan> 5 V</text></g>
+  <g transform="translate(620 30)"><rect width="186" height="62" rx="8" fill="#fff" stroke="#c4c8c0"/><text x="12" y="22" fill="#23262b">L9637D pin 4 · TX</text><text x="12" y="46" style="font:500 12px var(--mono)" fill="#23262b"><tspan fill="#2f6fd6">LOW</tspan> 0 V · <tspan fill="#b4472a">HIGH</tspan> 5 V</text></g>
+  <g transform="translate(850 30)"><rect width="186" height="62" rx="8" fill="#fff" stroke="#c4c8c0"/><text x="12" y="22" fill="#23262b">L9637D pin 6 · K</text><text x="12" y="46" style="font:500 12px var(--mono)" fill="#23262b"><tspan fill="#2f6fd6">LOW</tspan> &lt;1 V · <tspan fill="#b4472a">HIGH</tspan> ≈12 V</text></g>
+  <!-- bottom lane -->
+  <path d="M280 344L213 420M545 344L493 420M640 344L713 420" stroke="#7b8088" stroke-width="1.5"/>
+  <g transform="translate(620 420)"><rect width="186" height="62" rx="8" fill="#fff" stroke="#c4c8c0"/><text x="12" y="22" fill="#23262b">L9637D pin 1 · RX</text><text x="12" y="46" style="font:500 12px var(--mono)" fill="#23262b"><tspan fill="#2f6fd6">LOW</tspan> 0 V · <tspan fill="#b4472a">HIGH</tspan> 5 V</text></g>
+  <g transform="translate(400 420)"><rect width="186" height="62" rx="8" fill="#fff" stroke="#c4c8c0"/><text x="12" y="22" fill="#23262b">HV2</text><text x="12" y="46" style="font:500 12px var(--mono)" fill="#23262b"><tspan fill="#2f6fd6">LOW</tspan> 0 V · <tspan fill="#b4472a">HIGH</tspan> 5 V</text></g>
+  <g transform="translate(120 420)"><rect width="186" height="62" rx="8" fill="#fff" stroke="#c4c8c0"/><text x="12" y="22" fill="#23262b">GPIO43 · başlık TXD</text><text x="12" y="46" style="font:500 12px var(--mono)" fill="#23262b"><tspan fill="#2f6fd6">LOW</tspan> 0 V · <tspan fill="#b4472a">HIGH</tspan> 3.3 V</text></g>
+</g>
+<g style="font:700 14px var(--mono)" text-anchor="middle" fill="#fff">
+  <circle cx="280" cy="190" r="14" fill="#d62828" stroke="#fff" stroke-width="2.5"/><text x="280" y="195">1</text>
+  <circle cx="545" cy="190" r="14" fill="#d62828" stroke="#fff" stroke-width="2.5"/><text x="545" y="195">2</text>
+  <circle cx="640" cy="190" r="14" fill="#d62828" stroke="#fff" stroke-width="2.5"/><text x="640" y="195">3</text>
+  <circle cx="900" cy="260" r="14" fill="#d62828" stroke="#fff" stroke-width="2.5"/><text x="900" y="265">4</text>
+  <circle cx="640" cy="330" r="14" fill="#d62828" stroke="#fff" stroke-width="2.5"/><text x="640" y="335">5</text>
+  <circle cx="545" cy="330" r="14" fill="#d62828" stroke="#fff" stroke-width="2.5"/><text x="545" y="335">6</text>
+  <circle cx="280" cy="330" r="14" fill="#d62828" stroke="#fff" stroke-width="2.5"/><text x="280" y="335">7</text>
+</g>
+<g style="font:600 12px var(--mono)"><text x="280" y="240" text-anchor="middle" fill="#1d4a9a">TX yolu →</text><text x="280" y="290" text-anchor="middle" fill="#1b6a36">← RX yolu</text></g>
+</svg>
+</div></div>
+</section>
+
+<div class="grid">
+  <section class="card">
+    <h2>Önce sabit noktalar</h2>
+    <p>Bunlar pencereden bağımsızdır, her an aynı çıkmalı.</p>
+    <table>
+      <thead><tr><th>Nokta</th><th>Beklenen</th><th>Ölçtüğün</th></tr></thead>
+      <tbody>
+        <tr><td>L9637D pin 7 (VS)</td><td class="v">≈ 11.5 V</td><td>______</td></tr>
+        <tr><td>L9637D pin 3 (VCC)</td><td class="v">≈ 5 V</td><td>______</td></tr>
+        <tr><td>L9637D pin 5 (GND)</td><td class="v">0 V</td><td>______</td></tr>
+        <tr><td>Dönüştürücü HV pini</td><td class="v">≈ 5 V</td><td>______</td></tr>
+        <tr><td>Dönüştürücü LV pini</td><td class="v">≈ 3.3 V</td><td>______</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>Ölçüm tablosu</h2>
+    <table>
+      <thead><tr><th>#</th><th>Nokta</th><th>TX LOW</th><th>TX HIGH</th></tr></thead>
+      <tbody>
+        <tr><td class="v">1</td><td>GPIO44 · başlık RXD (TX)</td><td class="v">0 V · ____</td><td class="v">3.3 V · ____</td></tr>
+        <tr><td class="v">2</td><td>HV1 · plakette HV3</td><td class="v">0 V · ____</td><td class="v">5 V · ____</td></tr>
+        <tr><td class="v">3</td><td>L9637D pin 4</td><td class="v">0 V · ____</td><td class="v">5 V · ____</td></tr>
+        <tr><td class="v">4</td><td>L9637D pin 6 (K)</td><td class="v">&lt;1 V · ____</td><td class="v">12 V · ____</td></tr>
+        <tr><td class="v">5</td><td>L9637D pin 1</td><td class="v">0 V · ____</td><td class="v">5 V · ____</td></tr>
+        <tr><td class="v">6</td><td>HV2 · plakette de HV2</td><td class="v">0 V · ____</td><td class="v">5 V · ____</td></tr>
+        <tr><td class="v">7</td><td>GPIO43 · başlık TXD (RX)</td><td class="v">0 V · ____</td><td class="v">3.3 V · ____</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Logdaki satır: LOW penceresinde <code>ölç · TX LOW 5 sn  OK TX0 RX0</code>, HIGH penceresinde <code>ölç · TX HIGH 5 sn  OK TX1 RX1</code> olmalı.</p>
+  </section>
+
+  <section class="card">
+    <h2>İlk düşmeyen nokta → sebep</h2>
+    <table>
+      <thead><tr><th>Düşmeyen</th><th>Bakılacak yer</th></tr></thead>
+      <tbody>
+        <tr><td class="v">sabitler</td><td>Pin 3, pin 7 ya da HV 0 V çıkıyorsa önce ray kablolarına bak: a23 → üst + ray, j21 / j15 / j6 → alt + ray ve 2. sütundaki GND köprüsü. Devre ray ayrımının (32. sütun) solunda kalmalı.</td></tr>
+        <tr><td class="v">1</td><td>ESP hattı sürmüyor. <code>UART</code> Type-C boş mu (takılıysa FSUSB42 başlığı ayırır)? TX teli başlıkta <code>RXD</code> (GPIO44) pininde mi, ESP GND'si devre GND'sine bağlı mı?</td></tr>
+        <tr><td class="v">2</td><td>Dönüştürücünün TX kanalı. HV/LV yönü ters mi, HV'de 5 V, LV'de 3.3 V, GND bağlı mı?</td></tr>
+        <tr><td class="v">3</td><td>HV1 ile pin 4 arasındaki kablo ya da breadboard satırı.</td></tr>
+        <tr><td class="v">4</td><td>L9637D: adaptör yönü (pin-1 noktası), pin 3'te 5 V, pin 5 GND, adaptör lehimleri.</td></tr>
+        <tr><td class="v">5</td><td>L9637D RX çıkışı: pin 3 beslemesi ya da adaptörde pin 1 lehimi.</td></tr>
+        <tr><td class="v">6</td><td>Pin 1 ile HV2 arasındaki kablo ya da breadboard satırı.</td></tr>
+        <tr><td class="v">7</td><td>Dönüştürücünün RX kanalı ya da LV2 ile başlık <code>TXD</code> (GPIO43) arasındaki tel.</td></tr>
+        <tr><td class="v">hepsi iniyor</td><td>Logda LOW penceresinde yine <code>RX1</code> yazıyorsa RX teli başlığın <code>TXD</code> pinine tam oturmuyor ya da <code>UART</code> Type-C takılı.</td></tr>
+      </tbody>
+    </table>
+  </section>
+</div>
+<!-- measure:end -->
+</div>
+
+</body></html>

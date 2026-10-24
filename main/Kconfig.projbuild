@@ -1,119 +1,32 @@
-menu "VEMS Link"
+menu "K-Line OBD"
 
-    choice VEMS_SOURCE
-        prompt "Veri kaynagi"
-        default VEMS_SOURCE_VEMS
-        help
-            VEMS: VEMS v3 ECU'ya USB FTDI / UART ile baglanir (tum VEMS verisi).
-            OBD-II: herhangi bir aracin OBD soketinden standart PID'leri okur. CAN (ISO 15765-4) ve
-            K-Line (ISO 9141-2 / ISO 14230-4 KWP2000) acilista otomatik denenir.
-
-        config VEMS_SOURCE_VEMS
-            bool "VEMS v3 ECU"
-        config VEMS_SOURCE_OBD
-            bool "OBD-II soketi (CAN + K-Line, otomatik)"
-    endchoice
-
-if VEMS_SOURCE_VEMS
-
-    choice VEMS_TRANSPORT
-        prompt "VEMS baglanti tipi"
-        default VEMS_TRANSPORT_USB_FTDI
-        help
-            USB host: VEMS uzerindeki FTDI (micro-USB) dogrudan ESP32-S3 native USB portuna takilir.
-            UART: VEMS TTL/RS232 RX-TX hatlari (seviye donusturucu ile) ESP32 GPIO'larina baglanir.
-
-        config VEMS_TRANSPORT_USB_FTDI
-            bool "USB host - VEMS uzerindeki FTDI (micro-USB)"
-        config VEMS_TRANSPORT_UART
-            bool "TTL UART - dogrudan RX/TX kablolari"
-    endchoice
-
-    config VEMS_UART_PORT
-        int "UART port numarasi"
-        depends on VEMS_TRANSPORT_UART
-        range 1 2
-        default 1
-
-    config VEMS_UART_TX_GPIO
-        int "UART TX GPIO (ESP32 -> VEMS RX)"
-        depends on VEMS_TRANSPORT_UART
-        default 20
-
-    config VEMS_UART_RX_GPIO
-        int "UART RX GPIO (VEMS TX -> ESP32)"
-        depends on VEMS_TRANSPORT_UART
-        default 19
-
-    config VEMS_BAUD
-        int "VEMS baud rate"
-        default 19200
-        help
-            VEMS v3 varsayilan seri hizi 19200 8N1.
-
-    config VEMS_AUTO_BAUD
-        bool "Baud bulunamazsa diger hizlari tara (sadece CRC'li TriggerFrame sorgusu ile)"
-        default n
-
-    choice VEMS_PROTOCOL
-        prompt "Canli veri protokolu"
-        default VEMS_PROTOCOL_AUTO
-        help
-            TF: TriggerFrame (HDLC + Modbus CRC16), VemsTune'un kullandigi yontem (komut 0xA0).
-            A: Eski MegaTune uyumlu "A" komutu (56 bayt, CRC yok).
-            AUTO: once TF, olmazsa A denenir.
-
-        config VEMS_PROTOCOL_AUTO
-            bool "Otomatik (once TriggerFrame, sonra A)"
-        config VEMS_PROTOCOL_TF
-            bool "Sadece TriggerFrame (0xA0)"
-        config VEMS_PROTOCOL_A
-            bool "Sadece MegaTune 'A' komutu"
-    endchoice
-
-    config VEMS_POLL_INTERVAL_MS
-        int "Sorgu araligi (ms)"
-        range 0 2000
-        default 40
-
-endif # VEMS_SOURCE_VEMS
-
-    menu "OBD-II"
-        depends on VEMS_SOURCE_OBD
-
-        config VEMS_OBD_CAN
-            bool "CAN: ISO 15765-4, 11 bit, 500/250 kbit/s (OBD pin 6 CAN-H, 14 CAN-L)"
-            default y
-            help
-                CAN donanimi "CAN donanimi" menusunden secilir (HW-184 / MCP2515 onerilir:
-                K-Line ile pin cakismasi yok). Hiz once dinleme modunda aranir, arac hattina
-                yanlis hizda hic bit basilmaz.
-
-        config VEMS_OBD_KLINE
-            bool "K-Line: ISO 9141-2 / ISO 14230-4 KWP2000 (OBD pin 7, L9637D)"
-            default y
-            help
-                L9637D + BSS138 seviye donusturucu, 12 pin konnektor UART ucu. Bu pinler seri
-                konsol hattidir: K-Line acikken loglar kaybolur, "UART" Type-C portu bos olmalidir.
+    menu "OBD-II K-Line"
 
         config VEMS_OBD_KLINE_UART_PORT
             int "K-Line UART port numarasi"
-            depends on VEMS_OBD_KLINE
             range 1 2
             default 1
 
         config VEMS_OBD_KLINE_TX_GPIO
-            int "K-Line TX GPIO -> L9637D TX (konnektor RXD / GPIO44)"
-            depends on VEMS_OBD_KLINE
+            int "K-Line TX GPIO -> L9637D TX (UART basligi RXD / GPIO44)"
             default 44
             help
-                GPIO44 acilista giris oldugu icin K hatti bosta kalir. GPIO43 (TXD) secilirse
-                acilis loglari K hattina gider.
+                Waveshare ESP32-S3-Touch-LCD-2.1'de disariya acik serbest pinler sadece UART basligi
+                (GPIO43/44). Baslik yazilari capraz: RXD = GPIO44 = bizim TX. GPIO44 acilista giris
+                oldugu icin K hatti bosta kalir. "UART" Type-C takiliyken kart uzerindeki anahtar bu
+                pinleri CH343'e verir: K-Line calismaz, kart "USB" Type-C'den beslenmeli.
 
         config VEMS_OBD_KLINE_RX_GPIO
-            int "K-Line RX GPIO <- L9637D RX (konnektor TXD / GPIO43)"
-            depends on VEMS_OBD_KLINE
+            int "K-Line RX GPIO <- L9637D RX (UART basligi TXD / GPIO43)"
             default 43
+
+        config VEMS_ENGINE_CC
+            int "Motor hacmi (cc), MAF yoksa yakit tuketimi tahmini icin"
+            range 500 8000
+            default 1399
+            help
+                Kalos 1.4 16V (F14D3) = 1399 cc. MAF sensoru olmayan araclarda tuketim MAP, emme havasi
+                ve devirden hesaplanir (hiz-yogunluk, dolum verimi %80 varsayilir).
 
     endmenu
 
@@ -126,14 +39,11 @@ endif # VEMS_SOURCE_VEMS
         bool "Canli veriyi JSON satiri olarak da yazdir"
         default n
 
-    config VEMS_DUMP_RAW_FRAMES
-        int "Ilk N ham cevabi HEX olarak yazdir (protokol dogrulama icin)"
-        range 0 100
-        default 3
-
     config VEMS_UI_ENABLE
-        bool "2.1\" yuvarlak ekranda gosterge paneli"
+        bool "Waveshare 2.1\" yuvarlak ekranda gosterge paneli"
         default y
+        help
+            Waveshare ESP32-S3-Touch-LCD-2.1 karti icin.
 
     config VEMS_UI_RPM_MAX
         int "Devir gostergesi maksimum (RPM)"
@@ -184,113 +94,5 @@ endif # VEMS_SOURCE_VEMS
         bool "Acilista buzzer melodisi (yaris baslangic isiklari)"
         depends on VEMS_UI_ENABLE
         default y
-
-    menu "CAN cikisi / CAN donanimi (HW-184 / MCP2515)"
-
-        config VEMS_CAN_ENABLE
-            bool "VEMS verisini arac CAN hattina bas (orijinal ECU emulasyonu)"
-            depends on VEMS_SOURCE_VEMS
-            default n
-            help
-                Donanim secimi asagida: HW-184 (MCP2515, SPI) ya da ESP32 dahili TWAI + transceiver.
-
-        choice VEMS_CAN_HW
-            prompt "CAN donanimi"
-            depends on VEMS_CAN_ENABLE || VEMS_OBD_CAN
-            default VEMS_CAN_HW_MCP2515
-
-            config VEMS_CAN_HW_MCP2515
-                bool "HW-184 / MCP2515 (SPI, SD kart yuvasi)"
-                help
-                    HW-184 (MCP2515 + TJA1050) SPI ile baglanir. Varsayilan pinler SD kart yuvasindan
-                    (GPIO2/1/42) ve 12 pin konnektorun IO0 ucundan alinir; SD kart kullanilamaz.
-                    MCP2515 3.3V, TJA1050 5V ile beslenmeli (modulde VCC ayrimi gerekir).
-
-            config VEMS_CAN_HW_TWAI
-                bool "ESP32 dahili TWAI + transceiver (12 pin konnektor TXD/RXD)"
-                help
-                    ESP32-S3 icindeki CAN birimi kullanilir, SD kart serbest kalir. Transceiver:
-                    MCP2515'i sokulmus HW-184 (TJA1050, 5V = konnektor pin 2 VBus, RXD hattina
-                    1k/2k bolucu) ya da SN65HVD230 (3.3V). GPIO43/44 seri log hattidir: CAN
-                    acikken loglar kaybolur ve USB TO UART Type-C portu bos olmalidir.
-        endchoice
-
-        config VEMS_CAN_TWAI_TX_GPIO
-            int "TWAI TX GPIO -> transceiver TXD (konnektor pin 10, RXD/GPIO44)"
-            depends on VEMS_CAN_HW_TWAI
-            default 2 if VEMS_OBD_KLINE
-            default 44
-            help
-                GPIO44 acilista giris oldugu icin hat resesif kalir. GPIO43 (TXD) secilirse
-                acilis loglari CAN hattina bit olarak gider ve araca hata cercevesi basar.
-                OBD K-Line acikken GPIO43/44 K-Line'indir: TWAI SD yuvasi pinlerine (GPIO2/1) gecer.
-
-        config VEMS_CAN_TWAI_RX_GPIO
-            int "TWAI RX GPIO <- transceiver RXD (konnektor pin 9, TXD/GPIO43)"
-            depends on VEMS_CAN_HW_TWAI
-            default 1 if VEMS_OBD_KLINE
-            default 43
-
-        choice VEMS_CAN_VEHICLE
-            prompt "Arac profili"
-            depends on VEMS_CAN_ENABLE
-            default VEMS_CAN_VEHICLE_RX8
-
-            config VEMS_CAN_VEHICLE_RX8
-                bool "Mazda RX-8 (SE3P, 2003-2012)"
-        endchoice
-
-        config VEMS_CAN_OSC_MHZ
-            int "MCP2515 kristal frekansi (MHz, 8 veya 16)"
-            depends on VEMS_CAN_HW_MCP2515
-            range 8 16
-            default 8
-
-        config VEMS_CAN_SCLK_GPIO
-            int "SPI SCK GPIO (SD yuvasi CLK)"
-            depends on VEMS_CAN_HW_MCP2515
-            default 2
-
-        config VEMS_CAN_MOSI_GPIO
-            int "SPI MOSI GPIO -> MCP2515 SI (SD yuvasi CMD)"
-            depends on VEMS_CAN_HW_MCP2515
-            default 1
-
-        config VEMS_CAN_MISO_GPIO
-            int "SPI MISO GPIO <- MCP2515 SO (SD yuvasi DAT0)"
-            depends on VEMS_CAN_HW_MCP2515
-            default 42
-
-        config VEMS_CAN_CS_GPIO
-            int "SPI CS GPIO (konnektor pin 12, IO0)"
-            depends on VEMS_CAN_HW_MCP2515
-            default 0
-
-        config VEMS_CAN_SPI_KHZ
-            int "SPI saat hizi (kHz)"
-            depends on VEMS_CAN_HW_MCP2515
-            range 500 10000
-            default 4000
-
-        config VEMS_CAN_STALE_MS
-            int "VEMS verisi bu sureden eskiyse devir 0 + motor arizasi lambasi (ms)"
-            depends on VEMS_CAN_ENABLE
-            range 200 5000
-            default 1000
-
-        config VEMS_CAN_RX8_IMMO
-            bool "RX-8: immobilizer el sikismasina cevap ver (anahtar lambasi yanip sonmesin)"
-            depends on VEMS_CAN_VEHICLE_RX8
-            default y
-
-        config VEMS_CAN_RX8_OIL_ASSUME_OK
-            bool "RX-8: motor calisirken yag basincini normal goster (GERCEK SENSOR YOK!)"
-            depends on VEMS_CAN_VEHICLE_RX8
-            default n
-            help
-                VEMS yag basinci olcmuyor. Acik olursa gosterge sadece "motor calisiyor" bilgisine gore
-                normal gorunur, gercek basinc kaybini GOSTERMEZ. Kapaliyken yag lambasi surekli yanar.
-
-    endmenu
 
 endmenu

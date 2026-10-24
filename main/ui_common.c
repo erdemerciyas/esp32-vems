@@ -16,40 +16,25 @@
 //   > 1.10  very lean      : misfire / high EGT / knock risk
 // ---------------------------------------------------------------------------
 const ui_afr_zone_t UI_AFR_ZONES[] = {
-    {0.75f, "COK ZENGIN",    0xFF3B30},
+    {0.75f, "ÇOK ZENGİN",    0xFF3B30},
     {0.82f, "TURBO TAM GAZ", 0xFF7A1A},
-    {0.90f, "TAM GAZ / GUC", 0xFFB020},
-    {0.97f, "HAFIF ZENGIN",  0xC8E03C},
-    {1.03f, "STOKIYOMETRIK", 0x2ED47A},
-    {1.10f, "EKONOMI",       0x00C8FF},
-    {9.99f, "COK FAKIR",     0xFF3B30},
+    {0.90f, "TAM GAZ / GÜÇ", 0xFFB020},
+    {0.97f, "HAFİF ZENGİN",  0xC8E03C},
+    {1.03f, "STOKİYOMETRİK", 0x2ED47A},
+    {1.10f, "EKONOMİ",       0x00C8FF},
+    {9.99f, "ÇOK FAKİR",     0xFF3B30},
 };
 const int UI_AFR_ZONE_COUNT = sizeof(UI_AFR_ZONES) / sizeof(UI_AFR_ZONES[0]);
 
 float ui_stoich_afr(void)
 {
-#if CONFIG_VEMS_UI_FUEL_E85
-    return 9.8f;
-#elif CONFIG_VEMS_UI_FUEL_LPG
-    return 15.5f;
-#elif CONFIG_VEMS_UI_FUEL_METHANOL
-    return 6.4f;
-#else
-    return 14.7f;
-#endif
+    return SETTINGS_FUELS[g_settings.fuel].stoich;
 }
 
 const char *ui_fuel_name(void)
 {
-#if CONFIG_VEMS_UI_FUEL_E85
-    return "E85";
-#elif CONFIG_VEMS_UI_FUEL_LPG
-    return "LPG";
-#elif CONFIG_VEMS_UI_FUEL_METHANOL
-    return "METANOL";
-#else
-    return "BENZIN";
-#endif
+    static const char *const UPPER[] = {"BENZİN", "E85", "LPG", "METANOL", "DİZEL"};   // same order as SETTINGS_FUELS
+    return g_settings.fuel < sizeof(UPPER) / sizeof(UPPER[0]) ? UPPER[g_settings.fuel] : "";
 }
 
 const ui_afr_zone_t *ui_afr_zone(float lambda)
@@ -113,7 +98,7 @@ void ui_tile_create(ui_tile_t *t, lv_obj_t *parent, int x, int y, const char *ca
     lv_obj_remove_style_all(t->stripe);
     lv_obj_set_size(t->stripe, 3, UI_TILE_H - 18);
     lv_obj_align(t->stripe, LV_ALIGN_LEFT_MID, 0, 0);
-    lv_obj_set_style_bg_color(t->stripe, C_BRAND, 0);
+    lv_obj_set_style_bg_color(t->stripe, C_PRIMARY, 0);
     lv_obj_set_style_bg_opa(t->stripe, LV_OPA_COVER, 0);
 
     t->caption = ui_label(t->box, &ui_font_label, C_MUTED, caption);
@@ -133,9 +118,9 @@ void ui_tile_set(ui_tile_t *t, const char *txt, lv_color_t color)
     }
     if (lv_obj_get_style_text_color(t->value, 0).full != color.full) {
         lv_obj_set_style_text_color(t->value, color, 0);
-        // plain values keep the brand stripe, warnings / zones light it up
+        // plain values keep the accent stripe, warnings / zones light it up
         bool plain = color.full == C_TEXT.full || color.full == C_MUTED.full;
-        lv_obj_set_style_bg_color(t->stripe, plain ? C_BRAND : color, 0);
+        lv_obj_set_style_bg_color(t->stripe, plain ? C_PRIMARY : color, 0);
         lv_obj_set_style_border_color(t->box, plain ? C_TILE_BRD : color, 0);
         lv_obj_set_style_border_opa(t->box, plain ? LV_OPA_COVER : LV_OPA_60, 0);
     }
@@ -162,19 +147,13 @@ void ui_page_dots(lv_obj_t *scr, int active, int count)
         lv_obj_remove_style_all(d);
         lv_obj_set_size(d, i == active ? w_on : w_off, h);
         lv_obj_set_style_radius(d, 2, 0);
-        lv_obj_set_style_bg_color(d, i == active ? C_BRAND : C_TILE_BRD, 0);
+        lv_obj_set_style_bg_color(d, i == active ? C_PRIMARY : C_TILE_BRD, 0);
         lv_obj_set_style_bg_opa(d, LV_OPA_COVER, 0);
         lv_obj_align(d, LV_ALIGN_TOP_LEFT, x, 450);
         x += (i == active ? w_on : w_off) + gap;
     }
 }
 
-void ui_brand_footer(lv_obj_t *scr, int y)
-{
-    lv_obj_t *logo = lv_img_create(scr);
-    lv_img_set_src(logo, &img_extremeecu_logo_small);
-    lv_obj_align(logo, LV_ALIGN_TOP_MID, 0, y);
-}
 
 void ui_meter_label_div10_cb(lv_event_t *e)
 {
@@ -198,4 +177,66 @@ lv_obj_t *ui_ring_meter(lv_obj_t *scr)
     lv_obj_clear_flag(m, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_event_cb(m, ui_meter_label_div10_cb, LV_EVENT_DRAW_PART_BEGIN, NULL);
     return m;
+}
+
+lv_obj_t *ui_header(lv_obj_t *scr, const char *txt, int y)
+{
+    lv_obj_t *h = ui_label(scr, &ui_font_label, C_MUTED, txt);
+    lv_obj_set_style_text_letter_space(h, 3, 0);
+    lv_obj_align(h, LV_ALIGN_TOP_MID, 0, y);
+    return h;
+}
+
+lv_obj_t *ui_scroll_list(lv_obj_t *scr)
+{
+    // inside the round glass: 332 px wide from y 100 to 430
+    lv_obj_t *list = lv_obj_create(scr);
+    lv_obj_remove_style_all(list);
+    lv_obj_set_size(list, 332, 330);
+    lv_obj_align(list, LV_ALIGN_TOP_LEFT, 74, 100);
+    lv_obj_set_flex_flow(list, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_scroll_dir(list, LV_DIR_VER);
+    lv_obj_set_scrollbar_mode(list, LV_SCROLLBAR_MODE_OFF);
+    lv_obj_set_style_pad_bottom(list, 40, 0);   // last row can scroll up out of the narrow bottom
+    lv_obj_clear_flag(list, LV_OBJ_FLAG_CLICKABLE);
+    return list;
+}
+
+lv_obj_t *ui_list_row(lv_obj_t *list, const char *name, lv_obj_t **value)
+{
+    lv_obj_t *row = lv_obj_create(list);
+    lv_obj_remove_style_all(row);
+    lv_obj_set_size(row, LV_PCT(100), 42);
+    lv_obj_set_style_border_side(row, LV_BORDER_SIDE_BOTTOM, 0);
+    lv_obj_set_style_border_width(row, 1, 0);
+    lv_obj_set_style_border_color(row, C_LINE, 0);
+    lv_obj_set_style_border_opa(row, LV_OPA_COVER, 0);
+    lv_obj_set_style_bg_color(row, C_TILE, LV_STATE_PRESSED);
+    lv_obj_set_style_bg_opa(row, LV_OPA_COVER, LV_STATE_PRESSED);
+    lv_obj_clear_flag(row, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE);
+
+    lv_obj_t *n = ui_label(row, &ui_font_label_lg, C_SOFT, name);
+    lv_obj_align(n, LV_ALIGN_LEFT_MID, 6, 0);
+    *value = ui_label(row, &ui_font_label_lg, C_MUTED, "--");
+    lv_obj_align(*value, LV_ALIGN_RIGHT_MID, -6, 0);
+    return row;
+}
+
+lv_obj_t *ui_pill_button(lv_obj_t *parent, const char *txt, int w)
+{
+    lv_obj_t *b = lv_obj_create(parent);
+    lv_obj_remove_style_all(b);
+    lv_obj_set_size(b, w, 46);
+    lv_obj_set_style_radius(b, 23, 0);
+    lv_obj_set_style_bg_color(b, lv_color_hex(0x07111D), 0);
+    lv_obj_set_style_bg_color(b, lv_color_hex(0x0D2C4A), LV_STATE_PRESSED);
+    lv_obj_set_style_bg_opa(b, LV_OPA_COVER, 0);
+    lv_obj_set_style_border_color(b, C_PRIMARY, 0);
+    lv_obj_set_style_border_width(b, 2, 0);
+    lv_obj_set_style_border_opa(b, LV_OPA_COVER, 0);
+    lv_obj_clear_flag(b, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_t *l = ui_label(b, &ui_font_label_lg, C_TEXT, txt);
+    lv_obj_set_style_text_letter_space(l, 3, 0);
+    lv_obj_center(l);
+    return b;
 }

@@ -2,7 +2,7 @@
  * Rajdhani (c) 2014 Indian Type Foundry, SIL Open Font License 1.1 (fonts.google.com/specimen/Rajdhani)
  * Size: 34 px
  * Bpp: 4
- * Opts: --no-compress --no-prefilter --bpp 4 --format lvgl --lv-include lvgl.h --font Rajdhani-Bold.ttf -r 0x2B-0x2E,0x30-0x39 --size 34 -o ui_font_value.c
+ * Opts: --no-compress --no-prefilter --bpp 4 --format lvgl --lv-include lvgl.h --font Rajdhani-Bold.ttf -r 0x2B-0x2E,0x30-0x3A --size 34 -o ui_font_value.c
  ******************************************************************************/
 
 #ifdef LV_LVGL_H_INCLUDE_SIMPLE
@@ -272,7 +272,15 @@ static LV_ATTRIBUTE_LARGE_CONST const uint8_t glyph_bitmap[] = {
     0x3, 0xaa, 0xaa, 0xaa, 0xac, 0xff, 0xff, 0xc0,
     0x8, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x50,
     0x8, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfa, 0x0,
-    0x6, 0xff, 0xff, 0xff, 0xff, 0xeb, 0x50, 0x0
+    0x6, 0xff, 0xff, 0xff, 0xff, 0xeb, 0x50, 0x0,
+
+    /* U+003A ":" */
+    0x9f, 0xff, 0x8b, 0xff, 0xfa, 0xbf, 0xff, 0xab,
+    0xff, 0xfa, 0xbf, 0xff, 0xa3, 0x77, 0x72, 0x0,
+    0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+    0x0, 0x0, 0x0, 0x3, 0x77, 0x72, 0xbf, 0xff,
+    0xab, 0xff, 0xfa, 0xbf, 0xff, 0xab, 0xff, 0xfa,
+    0x9f, 0xff, 0x80
 };
 
 
@@ -295,7 +303,8 @@ static const lv_font_fmt_txt_glyph_dsc_t glyph_dsc[] = {
     {.bitmap_index = 1095, .adv_w = 286, .box_w = 16, .box_h = 21, .ofs_x = 1, .ofs_y = 0},
     {.bitmap_index = 1263, .adv_w = 234, .box_w = 14, .box_h = 21, .ofs_x = 0, .ofs_y = 0},
     {.bitmap_index = 1410, .adv_w = 295, .box_w = 16, .box_h = 21, .ofs_x = 1, .ofs_y = 0},
-    {.bitmap_index = 1578, .adv_w = 286, .box_w = 16, .box_h = 21, .ofs_x = 1, .ofs_y = 0}
+    {.bitmap_index = 1578, .adv_w = 286, .box_w = 16, .box_h = 21, .ofs_x = 1, .ofs_y = 0},
+    {.bitmap_index = 1746, .adv_w = 111, .box_w = 5, .box_h = 17, .ofs_x = 1, .ofs_y = 0}
 };
 
 /*---------------------
@@ -304,15 +313,15 @@ static const lv_font_fmt_txt_glyph_dsc_t glyph_dsc[] = {
 
 static const uint8_t glyph_id_ofs_list_0[] = {
     0, 1, 2, 3, 0, 4, 5, 6,
-    7, 8, 9, 10, 11, 12, 13
+    7, 8, 9, 10, 11, 12, 13, 14
 };
 
 /*Collect the unicode lists and glyph_id offsets*/
 static const lv_font_fmt_txt_cmap_t cmaps[] =
 {
     {
-        .range_start = 43, .range_length = 15, .glyph_id_start = 1,
-        .unicode_list = NULL, .glyph_id_ofs_list = glyph_id_ofs_list_0, .list_length = 15, .type = LV_FONT_FMT_TXT_CMAP_FORMAT0_FULL
+        .range_start = 43, .range_length = 16, .glyph_id_start = 1,
+        .unicode_list = NULL, .glyph_id_ofs_list = glyph_id_ofs_list_0, .list_length = 16, .type = LV_FONT_FMT_TXT_CMAP_FORMAT0_FULL
     }
 };
 
